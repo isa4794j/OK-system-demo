@@ -3,6 +3,7 @@
  *
  * 여러 화면이 같이 쓰는 것만 둔다. 화면별 로직은 각자 파일에.
  */
+import { DEMO_NOTICE } from "./demo_notice.js";
 
 /* ---------- 서버 통신 ---------- */
 
@@ -243,6 +244,12 @@ const WIDE = globalThis.matchMedia?.("(min-width: 721px)");
 function fillPrivacyNotices() {
   for (const box of document.querySelectorAll(".notice--privacy")) {
     box.replaceChildren();
+
+    // 데모 저장소에만 있는 줄 — 접지 않고 늘 맨 위에 보인다.
+    const demo = document.createElement("p");
+    demo.className = "notice__lead notice__demo";
+    demo.textContent = DEMO_NOTICE;
+    box.append(demo);
 
     const [first, ...rest] = PRIVACY_LEAD;
     const lead = document.createElement("p");

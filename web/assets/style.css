@@ -2599,6 +2599,13 @@ textarea {
   margin: 0;
 }
 
+/* 데모 안내 — 주의색 한 줄. 데모 저장소에만 있다. */
+.notice__demo {
+  font-weight: 600;
+  color: #8a6100;
+  margin-bottom: 6px;
+}
+
 /* 예시는 규칙이 아니라 거드는 말이다. 회색으로 한 걸음 물린다. */
 .notice__examples {
   margin: var(--s1) 0 0;
@@ -3214,6 +3221,18 @@ textarea {
   font-size: 20px;
   font-weight: 700;
   color: var(--green);
+}
+
+/* 데모 안내 — 로그인 화면 맨 위 한 줄(데모 저장소 전용) */
+.login__demo {
+  margin: 0 0 var(--s3);
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #fff6e0;
+  color: #8a6100;
+  font-size: 13px;
+  line-height: 1.5;
+  font-weight: 600;
 }
 
 .login__form {

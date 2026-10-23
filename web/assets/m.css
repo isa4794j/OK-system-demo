@@ -512,6 +512,18 @@ textarea.mfield__input {
   color: var(--text-muted);
 }
 
+/* 데모 안내 — 작성 시트 맨 위 한 줄(데모 저장소 전용) */
+.mnotice {
+  margin: 0 0 var(--s2);
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #fff6e0;
+  color: #8a6100;
+  font-size: 13px;
+  line-height: 1.5;
+  font-weight: 600;
+}
+
 /* ---------- 뒤로 (탭 아닌 화면에서만) ---------- */
 
 .mbar__back {

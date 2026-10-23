@@ -1,0 +1,22 @@
+# 데모 초기화 — 매일 03:00 (한국 시각) 에 기준 데이터로 되돌린다.
+# DB 접속 주소는 저장소 Secrets 의 DEMO_DATABASE_URL 하나뿐이다(코드·문서에 적지 않는다).
+name: 데모 초기화
+
+on:
+  schedule:
+    # GitHub 은 UTC 로 돈다. 18:00 UTC = 03:00 KST
+    - cron: "0 18 * * *"
+  workflow_dispatch: # 손으로도 돌릴 수 있게
+
+jobs:
+  reset:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: 기준 데이터로 되돌리기
+        env:
+          DEMO_DATABASE_URL: ${{ secrets.DEMO_DATABASE_URL }}
+        run: deno run --allow-env --allow-net --allow-read db/tools/demo/reset.ts

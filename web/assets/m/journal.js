@@ -31,6 +31,7 @@
 import { confirmDialog, toast } from "../ui.js";
 import { get, goScreen, send } from "./app.js";
 import { openForm, today } from "./form.js";
+import { DEMO_NOTICE } from "../demo_notice.js";
 // 반기별 관찰 숨김(2026-09-17, 데이터 보존) — 되살릴 때: import { primeObserve } from "./observe.js";
 import { dayLabel, loadView, refreshView, thisMonth, timeLabel } from "./view.js";
 import { rolePill } from "./role_chips.js";
@@ -395,6 +396,7 @@ for (const node of el.segItems) {
 /** 그 날짜로 바로 쓴다. [안 쓴 일지] 에서 누르면 날짜를 다시 고를 이유가 없다. */
 async function writeFor(date) {
   const value = await openForm({
+    notice: DEMO_NOTICE,
     title: `${dayLabel(date)} 일지`,
     submitText: "저장",
     fields: [
@@ -452,6 +454,7 @@ el.add.addEventListener("click", async () => {
     : (past[past.length - 1] ?? days[0]);
 
   const value = await openForm({
+    notice: DEMO_NOTICE,
     title: "일지 쓰기",
     submitText: "저장",
     fields: [
@@ -493,6 +496,7 @@ el.add.addEventListener("click", async () => {
 
 async function editOne(one) {
   const value = await openForm({
+    notice: DEMO_NOTICE,
     title: `${dayLabel(one.journal_date)} 일지`,
     fields: [
       // 날짜는 보여만 준다. 바꾸는 것은 "다른 날 일지" 라는 뜻이라 새로 쓰는 것이 맞다.

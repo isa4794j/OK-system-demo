@@ -132,9 +132,10 @@ function sheet({ title, submitText, fill, read, validate, tall = false }) {
  * 칸 목록을 받아 시트를 연다.
  *
  *   fields  [{ name, label, type, value, hint, ... }]
+ *   notice  칸들 위에 붙일 안내 한 줄(없으면 안 붙는다)
  *   돌려주는 값: { name: value } 또는 취소하면 null
  */
-export function openForm({ title, fields, submitText = "저장", onValidate }) {
+export function openForm({ title, fields, submitText = "저장", onValidate, notice }) {
   const inputs = new Map();
 
   return sheet({
@@ -142,6 +143,12 @@ export function openForm({ title, fields, submitText = "저장", onValidate }) {
     submitText,
     validate: onValidate,
     fill: (panel) => {
+      if (notice) {
+        const note = document.createElement("p");
+        note.className = "mnotice";
+        note.textContent = notice;
+        panel.append(note);
+      }
       for (const field of fields) {
         const box = document.createElement("label");
         box.className = "mfield";
