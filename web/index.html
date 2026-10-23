@@ -1,0 +1,1706 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>OK 시스템</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/assets/tokens.css" />
+    <link rel="stylesheet" href="/assets/style.css" />
+    <link rel="stylesheet" href="/assets/doc.css" />
+  </head>
+  <body>
+    <div class="app">
+      <!-- 상단 앱바 -->
+      <header class="appbar">
+        <h1 class="appbar__title">OK 시스템</h1>
+      </header>
+
+      <div class="app__body">
+        <!--
+          메인 메뉴(아동·자원·설정). 넓은 화면은 왼쪽 아이콘 레일,
+          좁은 화면(720px 이하)은 화면 아래 탭바(/m 과 같은 모양). 서브탭은 그 옆 세로 칸 / 위 가로 칩.
+        -->
+        <nav class="rail" aria-label="주 메뉴">
+          <div class="rail__group">
+            <button
+              type="button"
+              class="rail__item is-active"
+              aria-current="page"
+              data-rail="children"
+            >
+              <span class="rail__icon" aria-hidden="true">👥</span>
+              <span class="rail__label">아동</span>
+            </button>
+            <button type="button" class="rail__item" data-rail="resources">
+              <span class="rail__icon" aria-hidden="true">📦</span>
+              <span class="rail__label">자원</span>
+            </button>
+          </div>
+
+          <div class="rail__group rail__group--bottom">
+            <button type="button" class="rail__item" data-rail="settings">
+              <span class="rail__icon" aria-hidden="true">⚙️</span>
+              <span class="rail__label">설정</span>
+            </button>
+          </div>
+        </nav>
+
+        <!-- 서브탭 패널 -->
+        <aside class="subnav" id="subnav-children" aria-label="아동 하위 메뉴">
+          <p class="subnav__heading">아동</p>
+          <ul class="subnav__list">
+            <li>
+              <button
+                type="button"
+                class="subnav__item is-active"
+                data-section="children"
+                aria-current="page"
+              >
+                아동
+              </button>
+            </li>
+            <li>
+              <button type="button" class="subnav__item" data-section="staff">종사자</button>
+              <!-- 종사자를 고르면 명단과 일지 3종이 여기 펼쳐진다 -->
+              <ul class="subnav__sub" id="kind-list" hidden>
+                <li>
+                  <button type="button" class="subnav__item subnav__item--sub" data-sview="명단">
+                    종사자 명단
+                  </button>
+                </li>
+                <li>
+                  <button type="button" class="subnav__item subnav__item--sub" data-sview="프로그램">
+                    프로그램
+                  </button>
+                </li>
+                <li>
+                  <button type="button" class="subnav__item subnav__item--sub" data-sview="일상">
+                    일상
+                  </button>
+                </li>
+                <li>
+                  <button type="button" class="subnav__item subnav__item--sub" data-sview="회의록">
+                    회의록
+                  </button>
+                </li>
+              </ul>
+            </li>
+            <li>
+              <button type="button" class="subnav__item" data-section="volunteer">
+                멘토+봉사자
+              </button>
+              <!-- 멘토+봉사자를 고르면 하위 화면이 여기 펼쳐진다 -->
+              <ul class="subnav__sub" id="volunteer-list" hidden>
+                <li>
+                  <button type="button" class="subnav__item subnav__item--sub" data-vol="명단">
+                    봉사자 명단
+                  </button>
+                </li>
+                <li>
+                  <button type="button" class="subnav__item subnav__item--sub" data-vol="스케줄">
+                    스케줄
+                  </button>
+                </li>
+                <li>
+                  <button type="button" class="subnav__item subnav__item--sub" data-vol="봉사일지">
+                    봉사일지
+                  </button>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </aside>
+
+        <!-- 자원 하위 메뉴 (메인 메뉴에서 자원을 고르면 아동 것과 바뀐다) -->
+        <aside class="subnav" id="subnav-resources" aria-label="자원 하위 메뉴" hidden>
+          <p class="subnav__heading">자원</p>
+          <ul class="subnav__list">
+            <li>
+              <button type="button" class="subnav__item is-active" data-res="자원사전">
+                자원사전
+                <!-- 미분류함(자원사전 맨 아래)에 쌓인 수 -->
+                <span class="badge badge--count" id="inbox-badge" hidden></span>
+              </button>
+            </li>
+            <li>
+              <button type="button" class="subnav__item" data-res="자원통계">자원통계</button>
+            </li>
+            <li>
+              <button type="button" class="subnav__item" data-res="도서관">도서관</button>
+            </li>
+          </ul>
+        </aside>
+
+        <!--
+          설정 하위 메뉴 — 그룹 넷: 문의함(단독) / 동의서(단독, ③단계) / 시스템 관리 / 로그.
+          좁은 화면(종사자 폰)은 평평한 칩 셋만 — 문의함 · 계정 관리 · 시스템 점검. data-pc-only 는 좁은 화면에서 숨긴다.
+          등급이 안 되는 항목은 me.js 가 숨기고, 보일 항목이 없는 그룹은 통째로 숨긴다.
+        -->
+        <aside class="subnav subnav--grouped" id="subnav-settings" aria-label="설정 하위 메뉴" hidden>
+          <p class="subnav__heading">설정</p>
+          <ul class="subnav__list">
+            <li class="sgroup" data-sgroup="문의함">
+              <button type="button" class="subnav__item sgroup__chip" data-setting="문의함">
+                문의함
+                <span class="badge badge--count" id="inquiry-badge" hidden></span>
+              </button>
+            </li>
+            <li class="sgroup" data-sgroup="동의서" data-pc-only>
+              <button type="button" class="subnav__item sgroup__chip" data-setting="동의서">동의서</button>
+            </li>
+            <li class="sgroup" data-sgroup="시스템 관리">
+              <!-- 넓은 화면: 작은 그룹 제목 / 좁은 화면: 그룹 칩(누르면 그 그룹의 항목이 둘째 줄에) -->
+              <p class="sgroup__title">시스템 관리</p>
+              <button type="button" class="subnav__item sgroup__chip" data-sgroup-chip="시스템 관리">시스템 관리</button>
+              <ul class="subnav__sub sgroup__items">
+                <li>
+                  <button type="button" class="subnav__item subnav__item--sub" data-setting="계정 관리">
+                    계정 관리
+                  </button>
+                </li>
+                <li data-pc-only>
+                  <button type="button" class="subnav__item subnav__item--sub" data-setting="봉사자 설정">
+                    봉사자 설정
+                  </button>
+                </li>
+                <li data-pc-only>
+                  <button type="button" class="subnav__item subnav__item--sub" data-setting="관찰 영역">
+                    관찰 영역
+                  </button>
+                </li>
+              </ul>
+            </li>
+            <li class="sgroup" data-sgroup="로그">
+              <!-- 넓은 화면: 작은 그룹 제목 / 좁은 화면: 그룹 칩(누르면 그 그룹의 항목이 둘째 줄에) -->
+              <p class="sgroup__title">로그</p>
+              <button type="button" class="subnav__item sgroup__chip" data-sgroup-chip="로그">로그</button>
+              <ul class="subnav__sub sgroup__items">
+                <li data-pc-only>
+                  <button type="button" class="subnav__item subnav__item--sub" data-setting="변경 기록">
+                    변경 기록
+                  </button>
+                </li>
+                <li data-pc-only>
+                  <button type="button" class="subnav__item subnav__item--sub" data-setting="관문 경고">
+                    관문 경고
+                  </button>
+                </li>
+                <li>
+                  <button type="button" class="subnav__item subnav__item--sub" data-setting="시스템 점검">
+                    시스템 점검
+                  </button>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </aside>
+
+        <!-- 메인 영역 -->
+        <main class="main" id="main">
+          <div class="main__inner">
+          <!-- 명단 화면 -->
+          <section class="view" id="view-list">
+            <div class="view__head">
+              <h2 class="view__title">아동 명단</h2>
+              <p class="view__count" id="count"></p>
+            </div>
+
+            <div class="toolbar">
+              <div class="chips" role="group" aria-label="상태 필터">
+                <button type="button" class="chip is-selected" data-status="재원">재원</button>
+                <button type="button" class="chip" data-status="종결">종결</button>
+              </div>
+
+              <div class="toolbar__right">
+                <div class="search">
+                  <label class="visually-hidden" for="search">이름 검색</label>
+                  <input
+                    type="search"
+                    id="search"
+                    class="search__input"
+                    placeholder="이름 검색"
+                    autocomplete="off"
+                  />
+                </div>
+                <button type="button" class="btn btn--primary wide-only" id="child-add-open">+ 아동 등록</button>
+              </div>
+            </div>
+            <p class="narrow-note narrow-only">등록·수정은 PC에서 할 수 있어요.</p>
+
+            <div class="card table-scroll" id="list-card">
+              <table class="table table--roster">
+                <caption class="visually-hidden">아동 명단</caption>
+                <thead>
+                  <tr>
+                    <th scope="col" class="table__th">이름</th>
+                    <th scope="col" class="table__th">학년</th>
+                    <th scope="col" class="table__th">성별</th>
+                    <th scope="col" class="table__th">상태</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody"></tbody>
+              </table>
+              <div class="state" id="state" hidden></div>
+            </div>
+          </section>
+
+          <!-- 아동 상세 화면 -->
+          <section class="view" id="view-detail" hidden>
+            <div class="detail__head">
+              <button type="button" class="back" id="back">← 목록으로</button>
+
+              <div class="detail__who">
+                <h2 class="view__title" id="detail-name"></h2>
+                <p class="detail__meta" id="detail-meta"></p>
+              </div>
+
+              <div class="period">
+                <!-- 연도: 올해에서 시작해 ‹ › 로 옮긴다(입소한 해 ~ 올해) -->
+                <div class="yearnav" id="year-chips" role="group" aria-label="연도 선택"></div>
+                <div class="chips" id="half-chips" role="group" aria-label="반기 선택">
+                  <button type="button" class="chip" data-half="1">상반기</button>
+                  <button type="button" class="chip" data-half="2">하반기</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 관찰 보기 — 읽기만 한다. 고치는 일은 편집 화면에서. -->
+            <div class="cards" id="detail-view">
+              <!--
+                0. 아동 정보  ★ 민감정보
+                보호자 연락처·주소·의뢰배경이 여기 들어온다. 상세를 열 때만 서버에서 받는다.
+                로그인이 생기면 이 카드(.sensitive)를 관리자만 보게 거는 자리다.
+              -->
+              <section class="card card--pad sensitive" id="child-info">
+                <div class="card__head">
+                  <button type="button" class="info__toggle" id="child-info-toggle" aria-expanded="false">
+                    <span class="resgroup__mark" aria-hidden="true">▸</span>
+                    <h3 class="card__title">아동 정보</h3>
+                    <span class="info__brief wide-only" id="child-info-brief"></span>
+                    <span class="info__brief narrow-only" id="child-info-brief-narrow"></span>
+                  </button>
+                  <div class="card__actions">
+                    <button type="button" class="linkbtn" id="child-info-edit">수정</button>
+                    <button type="button" class="linkbtn linkbtn--danger" id="child-info-delete">삭제</button>
+                  </div>
+                </div>
+                <dl class="info__grid" id="child-info-full" hidden></dl>
+              </section>
+
+              <!-- 2. 영역별 관찰 -->
+              <section class="card card--pad">
+                <div class="card__head">
+                  <h3 class="card__title">영역별 관찰</h3>
+                  <div class="card__actions">
+                    <!-- 관찰일지 인쇄(새 창, PC 전용) — 지금 고른 연도·반기로 열고, 인쇄 화면에서 연도 전체·영역을 고른다 -->
+                    <button type="button" class="btn wide-only" id="areas-print" title="관찰일지 인쇄" aria-label="관찰일지 인쇄">🖨 인쇄</button>
+                    <button type="button" class="btn" id="areas-expand">전체 펼치기</button>
+                    <button type="button" class="btn btn--primary" id="go-edit">
+                      날짜별 · 편집 →<span class="badge badge--count" id="go-edit-count" hidden title="가져올 관찰 후보"></span>
+                    </button>
+                  </div>
+                </div>
+                <p class="narrow-note narrow-only">관찰 편집(날짜별·영역 지정)은 PC에서 할 수 있어요.</p>
+                <div class="areas" id="areas"></div>
+                <div class="state state--inline" id="areas-state" hidden></div>
+                <div class="areaviews" id="area-views"></div>
+              </section>
+
+              <!--
+                4. 성장 추이 — 봉사자·멘토의 반기 관찰을 반기 축으로.
+                사람마다 따로 보인다. 같은 아이도 보는 자리에 따라 다르게 보인다.
+              -->
+              <!-- 반기별 관찰 숨김(features.js) 동안 안 보인다 — children.js 가 켤 때만 연다 -->
+              <section class="card card--pad" id="growth-card" hidden>
+                <h3 class="card__title">성장 추이</h3>
+                <p class="form__hint">
+                  봉사자·멘토가 반기마다 적은 관찰입니다. 관찰한 사람마다 따로 보입니다.
+                </p>
+                <div class="growth" id="growth"></div>
+                <div class="state state--inline" id="growth-state" hidden></div>
+              </section>
+
+              <!-- 5. 연간 평가 — ▸ 로 접혀 있다(펼치면 보기·수정·AI 초안·근거 확인 전부) -->
+              <section class="card card--pad evalcard" id="eval-card">
+                <div class="card__head">
+                  <button type="button" class="info__toggle" id="eval-toggle" aria-expanded="false" aria-controls="eval-card">
+                    <span class="resgroup__mark" aria-hidden="true">▸</span>
+                    <span class="card__title">연간 평가</span>
+                    <span class="badge badge--count" id="eval-changed" hidden>근거 바뀜</span>
+                  </button>
+                  <div class="card__actions" id="eval-actions"></div>
+                </div>
+                <p class="card__body" id="eval-meta"></p>
+
+                <p class="notice" id="eval-notice" hidden>
+                  AI가 작성한 초안입니다. 반드시 읽고 고친 뒤 저장하세요.
+                </p>
+
+                <!-- 봉사자 정량 관찰. 점수가 없는 반기면 비어 있다. -->
+                <div id="eval-quant"></div>
+
+                <!-- 저장 뒤 근거가 바뀌었는지. 추적 이전 평가면 그렇게 적는다. -->
+                <div id="eval-evidence"></div>
+
+                <div class="evalareas" id="eval-areas"></div>
+                <div class="state state--inline" id="eval-state" hidden></div>
+              </section>
+            </div>
+
+            <!-- 관찰 편집 — 관찰을 만지는 모든 일은 여기서 한다 -->
+            <div class="cards" id="detail-edit" hidden>
+              <section class="card card--pad">
+                <div class="card__head">
+                  <button type="button" class="back" id="go-view">← 관찰 보기로</button>
+                  <div class="card__actions">
+                    <button type="button" class="btn" id="import-open">일지에서 관찰 가져오기<span class="badge badge--count" id="import-count" hidden></span></button>
+                    <button type="button" class="btn" id="add-open">+ 관찰 직접 추가</button>
+                  </div>
+                </div>
+
+                <h3 class="card__title">날짜별 관찰</h3>
+                <!-- 합치기는 끌어 놓기(마우스)로만 된다. 터치 화면에서만 보인다. -->
+                <p class="form__hint touch-only">
+                  관찰 합치기는 PC에서 할 수 있어요. 수정·나누기·삭제는 여기서도 됩니다.
+                </p>
+
+                <!-- 추가 폼 (버튼을 누르면 열린다) -->
+                <form class="form" id="add-form" hidden>
+                  <div class="form__row">
+                    <div class="field">
+                      <label class="field__label" for="add-date">날짜</label>
+                      <input type="date" class="input" id="add-date" required />
+                    </div>
+                    <div class="field">
+                      <label class="field__label" for="add-area">영역</label>
+                      <select class="input" id="add-area"></select>
+                    </div>
+                    <div class="field">
+                      <label class="field__label" for="add-source">출처</label>
+                      <select class="input" id="add-source"></select>
+                    </div>
+                  </div>
+
+                  <div class="field">
+                    <label class="field__label" for="add-content">관찰 내용</label>
+                    <textarea class="input textarea" id="add-content" rows="3" required></textarea>
+                  </div>
+
+                  <div class="form__actions">
+                    <button type="submit" class="btn btn--primary" id="add-submit">추가</button>
+                    <button type="button" class="btn" id="add-cancel">취소</button>
+                  </div>
+                </form>
+
+                <div class="obsbar">
+                  <button type="button" class="chip" id="obs-unset-only" aria-pressed="false">미지정만 보기</button>
+                  <span class="obsbar__count" id="obs-count"></span>
+                </div>
+                <!-- 10건씩 그린다. 끝에 닿으면 이어서(#obs-more 는 눌러도 된다) -->
+                <ol class="obs" id="obs"></ol>
+                <div class="more" id="obs-more-box" hidden>
+                  <button type="button" class="btn" id="obs-more">더 보기</button>
+                </div>
+                <div class="state state--inline" id="obs-state" hidden></div>
+              </section>
+            </div>
+          </section>
+
+          <!-- 직원 명단 — 역할만 바꿔 어느 명단에나 쓴다 -->
+          <section class="view" id="view-staff" hidden>
+            <div class="view__head">
+              <h2 class="view__title" id="staff-title"></h2>
+              <p class="view__count" id="staff-count"></p>
+            </div>
+
+            <div class="toolbar">
+              <div class="chips" role="group" aria-label="상태 필터">
+                <button type="button" class="chip is-selected" data-sstatus="전체">전체</button>
+                <button type="button" class="chip" data-sstatus="종료" id="staff-closed-chip">
+                  종료
+                </button>
+              </div>
+
+              <div class="toolbar__right">
+                <label class="visually-hidden" for="staff-search">이름 검색</label>
+                <input
+                  type="search"
+                  id="staff-search"
+                  class="search__input"
+                  placeholder="이름 검색"
+                  autocomplete="off"
+                />
+                <button type="button" class="btn btn--primary wide-only" id="staff-add-open">+ 등록</button>
+              </div>
+            </div>
+            <p class="narrow-note narrow-only">등록·수정은 PC에서 할 수 있어요.</p>
+            <!-- 등록 권한(센터장 이상)이 없는 사람에게 — staff.js 가 켠다 -->
+            <p class="form__hint" id="staff-ask-note" hidden>새 사람 등록과 초대코드 발급은 센터장·관리자가 합니다. 필요하면 센터장님께 요청해 주세요.</p>
+
+            <!-- 등록·수정은 모달(#staff-modal, 파일 아래쪽)에서 한다. 목록이 밀리지 않게. -->
+
+            <div class="card table-scroll">
+              <table class="table table--roster">
+                <caption class="visually-hidden">직원 명단</caption>
+                <thead>
+                  <tr>
+                    <th scope="col" class="table__th">이름</th>
+                    <th scope="col" class="table__th">역할</th>
+                    <th scope="col" class="table__th">상태</th>
+                    <th scope="col" class="table__th">전화번호</th>
+                    <th scope="col" class="table__th"></th>
+                  </tr>
+                </thead>
+                <tbody id="staff-tbody"></tbody>
+              </table>
+              <div class="state" id="staff-state" hidden></div>
+            </div>
+          </section>
+
+          <!-- 멘토·봉사자 스케줄 -->
+          <section class="view" id="view-schedule" hidden>
+            <div class="view__head view__head--narrow-hide">
+              <h2 class="view__title">스케줄</h2>
+              <p class="view__count" id="sched-count"></p>
+            </div>
+
+            <div class="toolbar sched__toolbar">
+              <div class="period period--main">
+                <button type="button" class="btn btn--icon" id="sched-prev" aria-label="이전 달">
+                  ‹
+                </button>
+                <label class="visually-hidden" for="sched-month">조회할 달</label>
+                <span class="period__month">
+                  <input type="month" class="input" id="sched-month" />
+                </span>
+                <!-- 달 글자·📅 둘 다 같은 달·날짜 판(m/month_picker.js). 보이는 표시는 📅 하나(▾ 없음). 달 입력칸(브라우저 기본 달력)은 숨긴다 -->
+                <button type="button" class="period__pick" id="sched-pick" aria-haspopup="dialog"></button>
+                <button type="button" class="btn btn--icon period__cal" id="sched-cal" aria-haspopup="dialog" aria-label="날짜·기간 고르기" title="날짜·기간 고르기">
+                  <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>
+                </button>
+                <button type="button" class="period__clear" id="sched-pick-clear" aria-label="날짜 풀고 달 전체로" hidden>×</button>
+                <button type="button" class="btn btn--icon" id="sched-next" aria-label="다음 달">
+                  ›
+                </button>
+              </div>
+              <!-- 역할 거르기(role_filter.js). 요약·미작성·달력이 모두 따라간다.
+                   넓은 화면에서는 schedule.js 가 달력 상자 위쪽(#sched-calhead)으로 옮긴다 -->
+              <div id="sched-role-filter"></div>
+              <button type="button" class="btn btn--primary" id="sched-add-open">
+                + 일정 등록
+              </button>
+            </div>
+
+            <!-- 등록·수정은 모달(#sched-modal, 파일 아래쪽)에서 한다. 달력이 밀리지 않게. -->
+
+            <!-- 이 달의 근무 요약. 달력이 메인이라 한 줄로만 둔다. -->
+            <section class="card statcard sched__stat">
+              <div class="statbar" id="sched-statbar"></div>
+              <div class="statcard__foot">
+                <button type="button" class="linkbtn" id="sched-people-toggle" aria-expanded="false">
+                  사람별 보기 ▾
+                </button>
+              </div>
+              <div class="stats__people" id="sched-stats-people" hidden></div>
+              <div class="state state--inline" id="sched-stats-state" hidden></div>
+            </section>
+
+            <!-- 요약 바의 "미작성"을 누르면 여기 펼쳐진다 -->
+            <div class="missing sched__missing" id="sched-missing" hidden></div>
+
+            <div class="card card--pad sched__cal">
+              <div class="calhead" id="sched-calhead">
+                <!-- 점 모양이 역할이다. 색은 사람. -->
+                <p class="calendar__legend" aria-hidden="true">
+                  <span class="personchip__dot calendar__legenddot"></span>봉사자
+                  <span class="personchip__dot personchip__dot--mentor calendar__legenddot"></span>멘토
+                </p>
+              </div>
+              <div class="calendar" id="calendar"></div>
+              <div class="state state--inline" id="sched-state" hidden></div>
+            </div>
+
+            <!-- 날짜를 누르면 그날 일정이 여기 뜬다 -->
+            <section class="card card--pad sched__day" id="sched-day" hidden>
+              <div class="card__head">
+                <h3 class="card__title" id="sched-day-title"></h3>
+                <button type="button" class="linkbtn" id="sched-day-close">닫기</button>
+              </div>
+              <div class="dayplan" id="sched-day-list"></div>
+            </section>
+          </section>
+
+          <!--
+            아동 등록·수정  ★ 민감정보
+            명단 대신 뜬다. 로그인이 생기면 관리자만 열 수 있게 거는 자리다.
+          -->
+          <section class="view sensitive" id="view-child-form" hidden>
+            <div class="detail__head">
+              <button type="button" class="back" id="child-form-back">← 돌아가기</button>
+              <div class="detail__who">
+                <h2 class="view__title" id="child-form-heading"></h2>
+                <p class="detail__meta" id="child-form-sub"></p>
+              </div>
+            </div>
+
+            <form class="form form--page" id="child-form">
+              <div class="form__row">
+                <div class="field">
+                  <label class="field__label" for="child-name">이름</label>
+                  <input type="text" class="input" id="child-name" maxlength="100" required />
+                </div>
+                <div class="field">
+                  <label class="field__label" for="child-birth">생년월일</label>
+                  <input type="date" class="input" id="child-birth" required />
+                  <p class="form__hint" id="child-grade-hint"></p>
+                </div>
+                <div class="field">
+                  <label class="field__label" for="child-gender">성별</label>
+                  <select class="input" id="child-gender"></select>
+                </div>
+              </div>
+
+              <div class="form__row">
+                <div class="field">
+                  <label class="field__label" for="child-school">학교</label>
+                  <input type="text" class="input" id="child-school" maxlength="200" />
+                </div>
+                <div class="field">
+                  <label class="field__label" for="child-enroll">입소일</label>
+                  <input type="date" class="input" id="child-enroll" required />
+                </div>
+                <div class="field">
+                  <label class="field__label" for="child-status">상태</label>
+                  <select class="input" id="child-status"></select>
+                </div>
+                <div class="field" id="child-exit-field" hidden>
+                  <label class="field__label" for="child-exit">종결일</label>
+                  <input type="date" class="input" id="child-exit" />
+                </div>
+              </div>
+              <!-- 상태를 종결로 고르면 무엇이 되는지(children.js CLOSE_EXPLAIN) -->
+              <p class="notice" id="child-close-hint" hidden></p>
+
+              <div class="form__row">
+                <div class="field">
+                  <label class="field__label" for="child-guardian-relation">보호자 관계</label>
+                  <input
+                    type="text"
+                    class="input"
+                    id="child-guardian-relation"
+                    maxlength="200"
+                    placeholder="예: 모, 부, 조모, 위탁"
+                  />
+                </div>
+                <div class="field">
+                  <label class="field__label" for="child-guardian-contact">보호자 연락처</label>
+                  <input type="tel" class="input" id="child-guardian-contact" maxlength="200" />
+                </div>
+              </div>
+
+              <!-- 개인정보 동의서(종이)를 받은 날 — 선택. 기록만 하고 이것으로 가리는 것은 없다(034) -->
+              <div class="field">
+                <label class="field__label" for="child-consent">개인정보 동의서 받은 날 (선택)</label>
+                <input type="date" class="input" id="child-consent" />
+                <p class="form__hint">종이 동의서를 받은 날을 적어 둡니다. 동의서 양식은 설정 › 동의서에서 인쇄합니다.</p>
+              </div>
+
+              <div class="field">
+                <label class="field__label" for="child-address">주소</label>
+                <input type="text" class="input" id="child-address" maxlength="200" />
+              </div>
+
+              <div class="field">
+                <label class="field__label" for="child-referral">의뢰배경</label>
+                <textarea class="input textarea" id="child-referral" rows="4" maxlength="2000"></textarea>
+              </div>
+
+              <div class="form__actions">
+                <button type="submit" class="btn btn--primary" id="child-submit">저장</button>
+                <button type="button" class="btn" id="child-cancel">취소</button>
+              </div>
+            </form>
+          </section>
+
+          <!-- 자원사전 -->
+          <section class="view" id="view-resources" hidden>
+            <div class="view__head">
+              <h2 class="view__title">자원사전</h2>
+              <p class="view__count" id="resource-count"></p>
+            </div>
+
+            <div class="toolbar">
+              <button type="button" class="btn" id="resource-categories-open">
+                카테고리 관리
+              </button>
+
+              <div class="toolbar__right">
+                <label class="visually-hidden" for="resource-search">자원명 검색</label>
+                <input
+                  type="search"
+                  id="resource-search"
+                  class="search__input"
+                  placeholder="자원명 검색"
+                  autocomplete="off"
+                />
+                <button type="button" class="btn btn--primary" id="resource-add-open">
+                  + 자원 등록
+                </button>
+              </div>
+            </div>
+            <!-- 자원 합치기는 끌어 놓기(마우스)로만 된다. 넓은 터치 화면(태블릿)에서만 보인다. -->
+            <p class="form__hint touch-only wide-only">
+              자원 합치기는 PC에서 할 수 있어요. 별칭 떼어내기(↗)는 여기서도 됩니다.
+            </p>
+            <!-- 좁은 화면은 별칭 떼어내기도 숨긴다(한 줄 목록) -->
+            <p class="narrow-note narrow-only">별칭 분리·자원 합치기는 PC에서 할 수 있어요.</p>
+
+            <!--
+              자원 등록(모달) — 세 길이 한 화면: ① 직접 입력 ② 📷 찍기 ③ 🖼 갤러리.
+              사진 길은 인식 → 후보 체크 → 한꺼번에 등록까지 이 안에서 이어진다.
+              수정도 이 모달을 쓴다(그때는 ① 만 보인다).
+            -->
+            <div class="modal" id="photo-modal" hidden>
+              <div class="modal__backdrop" id="photo-backdrop"></div>
+              <div
+                class="modal__dialog modal__dialog--photo"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="photo-title"
+              >
+                <div class="modal__head">
+                  <h3 class="card__title" id="photo-title">자원 등록</h3>
+                  <button type="button" class="btn modal__close" id="photo-close" aria-label="닫기"><span class="modal__closetext">닫기</span><span class="modal__closex" aria-hidden="true">×</span></button>
+                </div>
+
+                <!-- ① 직접 입력 -->
+                <form class="resadd__direct" id="resource-form">
+                  <p class="field__label resadd__label" id="resource-form-title">직접 입력</p>
+                  <div class="form__row">
+                    <div class="field">
+                      <label class="field__label" for="resource-name">자원명</label>
+                      <input type="text" class="input" id="resource-name" maxlength="100" required />
+                    </div>
+                    <div class="field">
+                      <label class="field__label" for="resource-category">카테고리</label>
+                      <select class="input" id="resource-category" required></select>
+                    </div>
+                    <div class="field">
+                      <label class="field__label" for="resource-aliases">별칭</label>
+                      <input
+                        type="text"
+                        class="input"
+                        id="resource-aliases"
+                        maxlength="500"
+                        placeholder="쉼표로 구분 (예: 젠가, 나무탑)"
+                      />
+                    </div>
+                  </div>
+                  <div class="form__actions">
+                    <button type="submit" class="btn btn--primary" id="resource-submit">저장</button>
+                    <button type="button" class="btn" id="resource-cancel">취소</button>
+                  </div>
+                </form>
+
+                <!-- ②③ 사진으로 여러 개 -->
+                <section class="resadd__photo" id="photo-block">
+                  <p class="field__label resadd__label">사진으로 여러 개 한꺼번에</p>
+                  <!-- 문구는 ui.js 의 PHOTO_NOTICE 한 곳에서 온다 -->
+                  <p class="notice" id="photo-notice"></p>
+
+                  <div class="photo__pick" id="photo-pick">
+                    <!-- [📷 찍기] / [🖼 갤러리] — ui.js mountPhotoSource -->
+                    <div id="photo-source"></div>
+                    <p class="form__hint">
+                      책장·선반 사진, 5MB 이하(큰 사진은 자동으로 줄임). 도서는 인식하지 않습니다.
+                      사진은 인식에만 쓰고 저장하지 않습니다.
+                    </p>
+                    <img class="photo__preview" id="photo-preview" alt="" hidden />
+                    <div class="modal__actions">
+                      <button type="button" class="btn btn--primary" id="photo-run" disabled>
+                        인식 시작
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="state" id="photo-state" hidden></div>
+
+                  <div id="photo-result" hidden>
+                    <p class="form__hint" id="photo-summary"></p>
+                    <ul class="photo__list" id="photo-list"></ul>
+                    <div class="modal__actions">
+                      <button type="button" class="btn btn--primary" id="photo-register">
+                        선택 항목 등록
+                      </button>
+                      <button type="button" class="btn" id="photo-retry">다른 사진</button>
+                    </div>
+                  </div>
+                </section>
+              </div>
+            </div>
+
+            <div class="reslist" id="resource-groups"></div>
+            <div class="state" id="resource-state" hidden></div>
+
+            <!-- 미분류함 — 카테고리를 못 정한 자원·자원 아님 목록(resource_inbox.js). 기본 접힘 -->
+            <section class="resgroup resinbox" id="view-resource-inbox">
+              <button type="button" class="resgroup__head" id="inbox-toggle" aria-expanded="false" aria-controls="inbox-body">
+                <span class="resgroup__mark" aria-hidden="true">▸</span>
+                <span class="resgroup__name">미분류함</span>
+                <span class="badge badge--count" id="inbox-badge-section" hidden></span>
+                <span class="resgroup__count" id="inbox-count"></span>
+              </button>
+              <div class="resinbox__body" id="inbox-body" hidden>
+                <div class="rstat" id="inbox-pending"></div>
+                <div class="rstat" id="inbox-rejected"></div>
+                <div class="state" id="inbox-state" hidden></div>
+              </div>
+            </section>
+          </section>
+
+          <!--
+            변경 기록 (감사 로그)  ★ 관리자 전용
+            before/after 에 민감정보가 그대로 있다. 로그인이 생기면 관리자만 열게 건다.
+          -->
+          <!--
+            관문 경고 — 잠갔으면 막혔을 요청. 정책표의 빈틈이 여기서 드러난다.
+            ★ 관리자 전용. 4단계(경고만)에서 쓰고, 잠근 뒤에는 조용해야 한다.
+          -->
+          <section class="view" id="view-warnings" hidden>
+            <div class="view__head">
+              <h2 class="view__title">관문 경고</h2>
+              <p class="view__count" id="warn-count"></p>
+            </div>
+
+            <p id="warn-mode"></p>
+
+            <div class="toolbar">
+              <div class="toolbar__right" id="warn-actions"></div>
+            </div>
+
+            <ul class="warn__list" id="warn-list"></ul>
+            <div class="state" id="warn-state" hidden></div>
+          </section>
+
+          <!--
+            문의함 — 봉사자가 폰에서 보낸 불편사항.
+            답장은 없다. 읽고 [확인함] 을 누르는 것까지다.
+          -->
+          <section class="view" id="view-inquiries" hidden>
+            <div class="view__head">
+              <h2 class="view__title">문의함</h2>
+              <p class="view__count" id="inquiry-count"></p>
+            </div>
+
+            <ul class="warn__list" id="inquiry-list"></ul>
+            <div class="state" id="inquiry-state" hidden></div>
+          </section>
+
+          <!--
+            시스템 점검 — 관리자 전용. 읽기만 한다. 고치는 버튼은 없다.
+          -->
+          <section class="view" id="view-syscheck" hidden>
+            <div class="view__head">
+              <h2 class="view__title">시스템 점검</h2>
+              <p class="view__count" id="syscheck-meta"></p>
+            </div>
+
+            <p class="form__hint">
+              설정·데이터 연결·권한을 서버가 읽어 확인합니다. 아무것도 고치지 않습니다 —
+              이상이 보이면 내용을 보고 사람이 판단해 주세요. 실행하면 변경 기록에 남습니다.
+            </p>
+
+            <div class="toolbar">
+              <div class="toolbar__right">
+                <button type="button" class="btn btn--primary" id="syscheck-run">점검 실행</button>
+              </div>
+            </div>
+
+            <ul class="syscheck" id="syscheck-list"></ul>
+            <div class="state" id="syscheck-state" hidden></div>
+          </section>
+
+          <!--
+            봉사자 설정 — 폰 화면이 어떻게 보일지 정하는 자리.
+            바꾸는 것은 센터장 이상이다. 그 아래 등급에게는 지금 값만 보이고 잠긴다.
+          -->
+          <!--
+            동의서 — [동의서 인쇄]·[처리방침 보기] 는 종사자, [문구 수정] 은 센터장 이상(서버 정책표와 같은 기준).
+            문구(동의서·처리방침·센터 이름)는 settings 에 저장된다 — 업체·서버 이름이 코드에 없다(documents.js).
+          -->
+          <section class="view" id="view-documents" hidden>
+            <div class="view__head">
+              <h2 class="view__title">동의서</h2>
+            </div>
+            <!-- 다른 설정 화면처럼 제목 아래 왼쪽에 버튼 줄. 처리방침은 같은 화면의 [처리방침] 미리보기로 연다(새 창 없음) -->
+            <div class="docs__actions">
+              <button type="button" class="btn btn--primary" id="docs-print">동의서 인쇄</button>
+              <button type="button" class="btn" id="docs-policy">처리방침 보기</button>
+              <button type="button" class="btn" id="docs-edit" hidden>문구 수정</button>
+            </div>
+
+            <!-- 보기: 지금 저장된 문구 미리보기 -->
+            <div id="docs-read">
+              <p class="muted docs__lead">
+                아동·보호자에게 받는 개인정보 동의서와, 로그인 화면에 걸린 개인정보 처리방침입니다.
+                AI 업체나 서버가 바뀌면 [문구 수정] 에서 동의서 Ⅵ(위탁·국외 이전)과 처리방침의 위탁·보관 절을 함께 고쳐 주세요.
+              </p>
+              <div class="chips docs__tabs" role="group" aria-label="미리보기 고르기">
+                <button type="button" class="chip is-selected" data-doc-tab="consent" aria-pressed="true">동의서</button>
+                <button type="button" class="chip" data-doc-tab="policy" aria-pressed="false">처리방침</button>
+              </div>
+              <div class="card card--pad docs__preview" id="docs-preview"></div>
+              <div class="state" id="docs-state" hidden></div>
+            </div>
+
+            <!-- 고치기: 탭 셋(동의서·처리방침·센터 이름) — 저장은 바뀐 것만 -->
+            <form class="form form--page docs__editor" id="docs-editor" hidden novalidate>
+              <div class="chips docs__tabs" role="group" aria-label="고칠 문서 고르기">
+                <button type="button" class="chip is-selected" data-edit-tab="consent" aria-pressed="true">동의서</button>
+                <button type="button" class="chip" data-edit-tab="policy" aria-pressed="false">처리방침</button>
+                <button type="button" class="chip" data-edit-tab="center" aria-pressed="false">센터 이름</button>
+              </div>
+              <p class="form__hint">
+                기본 문구에는 센터 이름이 글자 그대로 들어 있습니다(글 안에 <b>{센터}</b> 라고 쓰면 [센터 이름] 탭의 이름으로 바뀝니다). 저장하면 변경 기록에 전후 문구가 남습니다.
+              </p>
+              <div id="docs-edit-consent"></div>
+              <div id="docs-edit-policy" hidden></div>
+              <div id="docs-edit-center" hidden></div>
+              <div class="form__actions docs__save">
+                <button type="submit" class="btn btn--primary" id="docs-save">저장</button>
+                <button type="button" class="btn" id="docs-cancel">취소</button>
+                <button type="button" class="btn docs__reset" id="docs-reset">이 탭을 기본 문구로</button>
+              </div>
+            </form>
+          </section>
+
+          <!-- 관찰 영역(관리자 전용 — 입구는 여기 하나). 코드는 그대로, 지운 영역은 "예전 영역"으로 남는다 — lib/obs_areas.ts -->
+          <section class="view" id="view-obs-areas" hidden>
+            <div class="view__head">
+              <h2 class="view__title">관찰 영역</h2>
+            </div>
+            <div class="card card--pad">
+              <form class="areaform--page" id="area-form" aria-label="관찰 영역 관리">
+                <p class="form__hint">이름을 바꾸면 지난 관찰에도 새 이름으로 보입니다. 지운 영역의 관찰은 '예전 영역'으로 남습니다.</p>
+                <ul class="rescat arealist" id="area-list"></ul>
+                <div class="rescat__add">
+                  <label class="visually-hidden" for="area-new">새 영역 이름</label>
+                  <input type="text" class="input" id="area-new" maxlength="20" placeholder="새 영역 이름" />
+                  <button type="button" class="btn" id="area-add">추가</button>
+                </div>
+                <div class="modal__actions">
+                  <button type="submit" class="btn btn--primary" id="area-save">저장</button>
+                  <button type="button" class="btn" id="area-cancel">취소</button>
+                </div>
+              </form>
+            </div>
+          </section>
+
+          <section class="view" id="view-volunteer" hidden>
+            <div class="view__head">
+              <h2 class="view__title">봉사자 설정</h2>
+            </div>
+
+            <div class="card card--pad">
+              <h3 class="card__title">봉사일지 공유 범위</h3>
+              <p class="form__hint">
+                봉사자가 폰에서 다른 봉사자의 일지를 읽을 수 있는지 정합니다.
+                일지 본문에는 아동 이름과 그날 있었던 일이 적힙니다.
+              </p>
+              <div class="chips" role="group" aria-label="봉사일지 공유 범위" id="vol-scope"></div>
+            </div>
+
+            <!-- 반기별 관찰 숨김(features.js) 동안 아래 두 카드는 안 보인다 -->
+            <div class="card card--pad" id="vol-half-card" hidden>
+              <h3 class="card__title">반기 관찰 열림·닫힘</h3>
+              <p class="form__hint">
+                닫으면 그 반기는 읽기만 됩니다 — 봉사자가 이미 쓴 글은 그대로 보이고,
+                고치거나 새로 쓰는 것만 막힙니다. 반기가 끝나고 정리가 끝났을 때 닫으세요.
+              </p>
+              <ul class="warn__list" id="vol-halves"></ul>
+            </div>
+
+            <!--
+              반기 관찰 항목 — 평가지표라 관리자만 고친다.
+              코드는 바뀌지 않는다: 기록이 코드로 점수를 물고 있다.
+            -->
+            <div class="card card--pad" id="vol-items-card" hidden>
+              <div class="card__head">
+                <h3 class="card__title">반기 관찰 항목</h3>
+                <div class="card__actions" id="vol-items-actions"></div>
+              </div>
+              <p class="form__hint">
+                항목 번호(코드)는 바뀌지 않습니다. 지운 항목의 지난 점수는 기록에 남고
+                화면에는 "삭제된 항목" 으로 보입니다. 문구를 고치면 지난 기록에도 새 문구로
+                보입니다 — 뜻이 바뀌는 수정이면 고치지 말고 지운 뒤 새로 더하세요.
+              </p>
+              <div id="vol-items"></div>
+            </div>
+
+            <div class="state" id="vol-state" hidden></div>
+          </section>
+
+          <!--
+            계정 관리 — 누가 들어올 수 있고 무엇을 할 수 있는가.
+            ★ 5단계에서 이 화면과 /api/accounts 는 관리자·센터장 전용으로 잠긴다.
+               지금은 계정을 다 만드는 단계라 열어 둔다.
+          -->
+          <section class="view" id="view-accounts" hidden>
+            <div class="view__head">
+              <h2 class="view__title">계정 관리</h2>
+              <p class="view__count" id="acct-count"></p>
+            </div>
+
+            <p class="form__hint">
+              초대코드는 발급 직후 한 번만 보입니다. 저장은 해시로만 하므로 서버도 다시 알려
+              줄 수 없습니다 — 놓치면 재발급하시면 됩니다.
+            </p>
+
+            <ul class="acct__list" id="acct-list"></ul>
+            <div class="state" id="acct-state" hidden></div>
+          </section>
+
+          <section class="view sensitive" id="view-audit" hidden>
+            <div class="view__head">
+              <h2 class="view__title">변경 기록</h2>
+              <p class="view__count" id="audit-count"></p>
+            </div>
+
+            <p class="form__hint">
+              삭제·주요 수정·아동/직원 등록이 쌓입니다. 줄을 누르면 바뀌기 전 값이 보입니다.
+              실수로 지운 것은 그 값을 보고 손으로 되살립니다.
+            </p>
+
+            <div class="toolbar">
+              <div class="chips" role="group" aria-label="동작 필터">
+                <button type="button" class="chip is-selected" data-aaction="">전체</button>
+                <button type="button" class="chip" data-aaction="delete">삭제</button>
+                <button type="button" class="chip" data-aaction="update">수정</button>
+                <button type="button" class="chip" data-aaction="create">등록</button>
+              </div>
+
+              <div class="toolbar__right audit__filters">
+                <label class="visually-hidden" for="audit-table">표</label>
+                <select class="input" id="audit-table">
+                  <option value="">모든 표</option>
+                </select>
+                <label class="visually-hidden" for="audit-from">시작일</label>
+                <input type="date" class="input" id="audit-from" />
+                <span class="audit__tilde" aria-hidden="true">~</span>
+                <label class="visually-hidden" for="audit-to">종료일</label>
+                <input type="date" class="input" id="audit-to" />
+              </div>
+            </div>
+
+            <div class="card table-scroll">
+              <table class="table audit">
+                <caption class="visually-hidden">변경 기록</caption>
+                <thead>
+                  <tr>
+                    <th scope="col" class="table__th">시각</th>
+                    <th scope="col" class="table__th">동작</th>
+                    <th scope="col" class="table__th">표</th>
+                    <th scope="col" class="table__th">요약</th>
+                    <th scope="col" class="table__th">누가</th>
+                  </tr>
+                </thead>
+                <tbody id="audit-tbody"></tbody>
+              </table>
+              <div class="state" id="audit-state" data-inline="true" hidden></div>
+              <div class="audit__more">
+                <button type="button" class="btn" id="audit-more" hidden>더 보기</button>
+              </div>
+            </div>
+          </section>
+
+          <!-- 도서관 -->
+          <section class="view" id="view-books" hidden>
+            <div class="view__head">
+              <h2 class="view__title">도서관</h2>
+              <p class="view__count" id="book-count"></p>
+            </div>
+
+            <!-- 두 갈래. 왼쪽은 우리가 가진 책, 오른쪽은 바깥에서 찾아 오는 자리다. -->
+            <div class="chips books__tabs" role="group" aria-label="도서관 화면">
+              <button type="button" class="chip is-selected" data-btab="mine">우리 도서관</button>
+              <button type="button" class="chip" data-btab="find">책 찾아보기</button>
+            </div>
+
+            <div id="book-mine">
+            <div class="toolbar">
+              <div class="toolbar__right">
+                <label class="visually-hidden" for="book-search">제목·저자·ISBN·등록번호 검색</label>
+                <input
+                  type="search"
+                  id="book-search"
+                  class="search__input"
+                  placeholder="제목·저자·ISBN·등록번호 검색"
+                  autocomplete="off"
+                />
+                <button type="button" class="btn btn--primary" id="book-add-open">+ 도서 등록</button>
+              </div>
+            </div>
+
+            <div class="card table-scroll">
+              <table class="table booktable">
+                <caption class="visually-hidden">도서 목록</caption>
+                <thead>
+                  <tr>
+                    <th scope="col" class="table__th">등록번호</th>
+                    <th scope="col" class="table__th">제목</th>
+                    <th scope="col" class="table__th">저자</th>
+                    <th scope="col" class="table__th">출판사 · 발행년</th>
+                    <!-- 열 이름을 눌러 거른다(고르기 칸이 곧 머리) -->
+                    <th scope="col" class="table__th">
+                      <label class="visually-hidden" for="book-class-filter">분류로 거르기</label>
+                      <select class="thfilter" id="book-class-filter"></select>
+                    </th>
+                    <th scope="col" class="table__th">
+                      <label class="visually-hidden" for="book-status-filter">상태로 거르기</label>
+                      <select class="thfilter" id="book-status-filter"></select>
+                    </th>
+                    <th scope="col" class="table__th"><span class="visually-hidden">동작</span></th>
+                  </tr>
+                </thead>
+                <tbody id="book-tbody"></tbody>
+              </table>
+              <div class="state" id="book-state" data-inline="true" hidden></div>
+            </div>
+            <!-- 목록은 15권씩. 남은 것이 있을 때만 보인다. -->
+            <div class="more" id="book-more-box" hidden>
+              <button type="button" class="btn" id="book-more">더 보기</button>
+            </div>
+
+            <!--
+              도서 등록·수정(모달)
+              등록: 위쪽에 채우는 길 다섯(직접 입력 · ISBN 조회 · 스캔 · 📷 표지 사진 · 책 찾아보기) + 아래 두 단 칸.
+              수정: 채우는 길은 숨기고 두 단 칸만. 조회로 채운 책은 서지 칸이 잠기고 [정보 다시 불러오기] 만 있다.
+            -->
+            <div class="modal" id="book-modal" hidden>
+              <div class="modal__backdrop" id="book-backdrop"></div>
+              <form
+                class="modal__dialog modal__dialog--wide form--modal bookform"
+                id="book-form"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="book-form-title"
+              >
+                <div class="modal__head">
+                  <h3 class="card__title" id="book-form-title">도서 등록</h3>
+                </div>
+
+                <!-- 채우는 길 — 등록일 때만. 기본은 제목으로 찾아 고르기(book_pick.js) -->
+                <div class="bookform__ways" id="book-ways">
+                  <p class="field__label">제목으로 찾기 <span class="field__hint">— 고르면 아래 서지 정보가 채워지고, 센터 정보를 붙여 저장합니다</span></p>
+                  <div id="book-pick"></div>
+                  <p class="field__label bookform__other">다른 길 <span class="field__hint">(직접 입력은 아래 칸에 바로)</span></p>
+                  <div class="bookform__waysrow">
+                    <div class="book__isbn-row">
+                      <label class="visually-hidden" for="book-isbn-find">ISBN</label>
+                      <input
+                        type="text"
+                        class="input"
+                        id="book-isbn-find"
+                        maxlength="20"
+                        placeholder="ISBN 978-89-…"
+                        inputmode="numeric"
+                      />
+                      <button type="button" class="btn" id="book-lookup" disabled>ISBN 조회</button>
+                    </div>
+                    <button type="button" class="btn" id="book-scan" hidden>스캔(바코드)</button>
+                    <button type="button" class="btn" id="book-photo-open">📷 표지 사진</button>
+                    <button type="button" class="btn" id="book-import-open">📄 엑셀로 등록</button>
+                  </div>
+                  <p class="form__hint" id="book-lookup-hint">
+                    API 준비 중. 키가 연결되면 ISBN 으로 제목·저자를 자동으로 채웁니다.
+                  </p>
+                  <!-- 조회 결과 한 줄. 어디서 받아왔는지와 화면 칸에 없는 값(KDC·표지)을 적는다. -->
+                  <p class="form__hint booklookup" id="book-lookup-result" hidden></p>
+                </div>
+
+                <div class="bookform__cols">
+                  <!-- 서지 정보 -->
+                  <fieldset class="bookform__part">
+                    <legend class="bookform__legend">서지 정보</legend>
+                    <p class="form__hint bookform__lock" id="book-lock-note" hidden>
+                      조회로 채운 정보라 고칠 수 없어요.
+                      <button type="button" class="btn btn--small" id="book-refresh">정보 다시 불러오기</button>
+                    </p>
+                    <div class="field">
+                      <label class="field__label" for="book-isbn">ISBN</label>
+                      <div class="bookform__isbn">
+                        <input type="text" class="input" id="book-isbn" maxlength="20" inputmode="numeric" />
+                        <!-- 서지가 비었거나 분류 미정인 책(잠기지 않은 책) — books.js 가 켠다 -->
+                        <button type="button" class="btn btn--small" id="book-recheck" hidden>ISBN 다시 검색</button>
+                      </div>
+                    </div>
+                    <div class="field">
+                      <label class="field__label" for="book-title">제목</label>
+                      <!-- required 를 두지 않는다 — 브라우저가 말없이 막으면 [저장] 이 무반응처럼 보인다(books.js 가 알린다) -->
+                      <input type="text" class="input" id="book-title" maxlength="300" />
+                    </div>
+                    <div class="field">
+                      <label class="field__label" for="book-author">저자</label>
+                      <input type="text" class="input" id="book-author" maxlength="200" />
+                    </div>
+                    <div class="form__row form__row--two">
+                      <div class="field">
+                        <label class="field__label" for="book-publisher">출판사</label>
+                        <input type="text" class="input" id="book-publisher" maxlength="200" />
+                      </div>
+                      <div class="field">
+                        <label class="field__label" for="book-year">발행년</label>
+                        <input type="number" class="input" id="book-year" min="1000" max="2999" />
+                      </div>
+                    </div>
+                    <div class="field">
+                      <label class="field__label" for="book-kdc-label">공식분류(KDC)</label>
+                      <select class="input" id="book-kdc-label"></select>
+                    </div>
+                  </fieldset>
+
+                  <!-- 센터 정보 -->
+                  <fieldset class="bookform__part">
+                    <legend class="bookform__legend">센터 정보</legend>
+                    <div class="form__row form__row--two">
+                      <div class="field">
+                        <label class="field__label" for="book-regno">등록번호 <span class="field__hint">(선택)</span></label>
+                        <input type="text" class="input" id="book-regno" maxlength="30" autocomplete="off" />
+                      </div>
+                      <div class="field">
+                        <label class="field__label" for="book-center">센터분류 <span class="field__hint">(선택)</span></label>
+                        <input type="text" class="input" id="book-center" maxlength="30" list="book-center-list" autocomplete="off" />
+                        <datalist id="book-center-list"></datalist>
+                      </div>
+                    </div>
+                    <div class="field">
+                      <label class="field__label" for="book-status">상태</label>
+                      <select class="input" id="book-status" required></select>
+                    </div>
+                    <div class="field">
+                      <label class="field__label" for="book-via">입수경위</label>
+                      <textarea class="input textarea bookform__text" id="book-via" rows="2" maxlength="200"
+                        placeholder="예: 2025 후원 — ○○ 도서관 기증"></textarea>
+                    </div>
+                    <div class="field">
+                      <label class="field__label" for="book-note">비고</label>
+                      <textarea class="input textarea bookform__text" id="book-note" rows="3" maxlength="2000"></textarea>
+                    </div>
+                  </fieldset>
+                </div>
+
+                <div class="modal__actions">
+                  <button type="submit" class="btn btn--primary" id="book-submit">저장</button>
+                  <button type="button" class="btn" id="book-cancel">취소</button>
+                </div>
+              </form>
+            </div>
+            </div><!-- /#book-mine -->
+
+            <!--
+              책 찾아보기 — 바깥 도서관에서 찾아 우리 목록에 넣는 자리.
+              찾은 것을 바로 저장하지 않는다. 등록 화면을 채워 열어 주고 사람이 확인한다.
+            -->
+            <div id="book-find" hidden>
+              <form class="booksearch" id="booksearch-form">
+                <div class="booksearch__row">
+                  <div class="field">
+                    <label class="field__label" for="booksearch-title">제목</label>
+                    <input type="text" class="input" id="booksearch-title" maxlength="100"
+                      placeholder="예: 구름빵" autocomplete="off" />
+                  </div>
+                  <div class="field">
+                    <label class="field__label" for="booksearch-author">저자</label>
+                    <input type="text" class="input" id="booksearch-author" maxlength="100"
+                      placeholder="예: 백희나" autocomplete="off" />
+                  </div>
+                  <button type="submit" class="btn btn--primary booksearch__go" id="booksearch-submit">찾기</button>
+                </div>
+                <p class="form__hint">제목이나 저자 중 하나만 넣어도 됩니다. 둘 다 넣으면 좁혀집니다.</p>
+              </form>
+
+              <p class="view__count" id="booksearch-count"></p>
+              <ul class="bfind" id="booksearch-list"></ul>
+              <div class="bfind__more">
+                <button type="button" class="btn" id="booksearch-more" hidden>더 보기</button>
+              </div>
+              <div class="state" id="booksearch-state" hidden></div>
+            </div>
+
+            <!--
+              책 사진으로 등록 (모달)
+
+              찍은 사진에서 제목·저자를 읽어 [책 찾아보기] 검색창을 채운다.
+              읽은 값으로 바로 등록하지 않는다 — 사람이 찾아보고 고른 뒤에 등록한다.
+            -->
+            <div class="modal" id="bphoto-modal" hidden>
+              <div class="modal__backdrop" id="bphoto-backdrop"></div>
+              <div
+                class="modal__dialog modal__dialog--photo"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="bphoto-title"
+              >
+                <div class="modal__head">
+                  <h3 class="card__title" id="bphoto-title">책 사진으로 등록</h3>
+                  <button type="button" class="btn modal__close" id="bphoto-close" aria-label="닫기"><span class="modal__closetext">닫기</span><span class="modal__closex" aria-hidden="true">×</span></button>
+                </div>
+
+                <!-- 문구는 ui.js 의 PHOTO_NOTICE 한 곳에서 온다 -->
+                <p class="notice" id="bphoto-notice"></p>
+
+                <div class="photo__pick" id="bphoto-pick">
+                  <p class="field__label">책 표지 사진</p>
+                  <!-- [📷 찍기] / [🖼 갤러리] — ui.js mountPhotoSource -->
+                  <div id="bphoto-source"></div>
+                  <p class="form__hint">
+                    한 권은 표지가 꽉 차게, 여러 권은 표지가 보이게 펼쳐 찍어 주세요.
+                    서가의 책등(옆면)도 읽습니다. 5MB 이하로 자동으로 줄입니다.
+                    사진은 읽는 데만 쓰고 저장하지 않습니다.
+                    <br />책이 많으면 서가 반쪽씩 나눠 찍으면 더 정확해요.
+                  </p>
+                  <img class="photo__preview" id="bphoto-preview" alt="" hidden />
+                  <div class="modal__actions">
+                    <button type="button" class="btn" id="bphoto-scan" hidden>
+                      바코드로 찾기
+                    </button>
+                    <button type="button" class="btn btn--primary" id="bphoto-run" disabled>
+                      표지 읽기
+                    </button>
+                  </div>
+                </div>
+
+                <div class="state" id="bphoto-state" hidden></div>
+
+                <!--
+                  여러 권이 읽혔을 때의 후보 목록.
+                  줄마다 [찾기] 를 누르면 그 줄 밑에서 찾아 고르고 [등록] — 화면을 떠나지 않는다(book_pick.js).
+                -->
+                <div id="bphoto-found" hidden>
+                  <p class="form__hint" id="bphoto-summary"></p>
+                  <ul class="cand" id="bphoto-list"></ul>
+                  <p class="form__hint" id="bphoto-unread" hidden></p>
+                  <div class="modal__actions">
+                    <button type="button" class="btn" id="bphoto-again">다시 찍기</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!--
+              엑셀로 등록(모달) — book_import_ui.js
+              ① 파일 고르기 → ② 열 배정 확인(서버가 내용으로 추정, 사람이 고침) → ③ 줄마다 찾기·등록(진행 표시)
+              → 요약 + "확인 필요" 줄은 표지 여러 권과 같은 연속 등록 줄로. 파일은 저장하지 않는다.
+            -->
+            <div class="modal" id="bimport-modal" hidden>
+              <div class="modal__backdrop" id="bimport-backdrop"></div>
+              <div class="modal__dialog modal__dialog--wide bimport" role="dialog" aria-modal="true" aria-labelledby="bimport-title">
+                <div class="modal__head">
+                  <h3 class="card__title" id="bimport-title">엑셀로 등록</h3>
+                  <button type="button" class="btn modal__close" id="bimport-close" aria-label="닫기"><span class="modal__closetext">닫기</span><span class="modal__closex" aria-hidden="true">×</span></button>
+                </div>
+
+                <section id="bimport-step-file">
+                  <p class="form__hint">
+                    양식은 자유입니다 — 열 이름이 달라도 내용을 보고 제목·저자·출판사·ISBN·등록번호를 짐작하고, 올린 뒤 확인합니다. 제목만 있어도 됩니다.
+                    엑셀(.xlsx)·CSV, 한 번에 100줄·2MB까지. 파일은 읽는 데만 쓰고 저장하지 않습니다.
+                  </p>
+                  <label class="btn btn--primary bimport__pick">
+                    📄 파일 고르기
+                    <input type="file" id="bimport-file" accept=".xlsx,.csv" hidden />
+                  </label>
+                </section>
+
+                <section id="bimport-step-map" hidden>
+                  <p class="form__hint" id="bimport-map-summary"></p>
+                  <div class="table-scroll">
+                    <table class="table bimport__map" id="bimport-map"></table>
+                  </div>
+                  <div class="field bimport__via">
+                    <label class="field__label" for="bimport-via">
+                      입수경위 <span class="field__hint">(선택 — 모든 줄에 같이. 입수경위 열이 있으면 그 값이 먼저)</span>
+                    </label>
+                    <input type="text" class="input" id="bimport-via" maxlength="100" placeholder="예: 기증 — ○○도서관" />
+                  </div>
+                  <p class="form__hint">
+                    ISBN 이 있는 줄은 조회로 채우고(저장 뒤 서지 잠금), 없는 줄은 제목(+저자·출판사)으로 찾아 딱 맞는 한 권이면 등록합니다.
+                    애매한 줄은 "확인 필요" 로 남겨 하나씩 고릅니다. 상태는 모두 '보유' 로 들어갑니다.
+                  </p>
+                  <div class="modal__actions">
+                    <button type="button" class="btn btn--primary" id="bimport-start">이대로 등록 시작</button>
+                    <button type="button" class="btn" id="bimport-again">다른 파일</button>
+                  </div>
+                </section>
+
+                <section id="bimport-step-run" hidden>
+                  <p class="bimport__progress" id="bimport-progress" aria-live="polite"></p>
+                  <div class="bimport__bar"><span id="bimport-bar"></span></div>
+                  <p class="bimport__summary" id="bimport-summary" hidden></p>
+                  <ul class="bimport__failed" id="bimport-failed" hidden></ul>
+                  <p class="field__label" id="bimport-check-title" hidden>확인 필요 — 줄마다 [찾기] 로 골라 등록</p>
+                  <ul class="cand" id="bimport-queue"></ul>
+                </section>
+
+                <div class="state" id="bimport-state" hidden></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 미분류함 (카테고리 미정 + 자원 아님) -->
+
+          <!-- 자원통계 -->
+          <section class="view" id="view-resource-stats" hidden>
+            <div class="view__head">
+              <h2 class="view__title">자원통계</h2>
+              <p class="view__count" id="rstat-count"></p>
+            </div>
+
+            <!-- ‹ 2026년 9월 › 왼쪽 크게(기본 = 월). [반기][연간] 은 오른쪽 — 다시 누르면 월로 -->
+            <div class="toolbar rstat__toolbar">
+              <div class="period period--main rstat__period">
+                <button type="button" class="btn btn--icon" id="rstat-prev" aria-label="이전 기간">
+                  ‹
+                </button>
+                <span class="rstat__label" id="rstat-label"></span>
+                <button type="button" class="btn btn--icon" id="rstat-next" aria-label="다음 기간">
+                  ›
+                </button>
+              </div>
+
+              <div class="chips" role="group" aria-label="기간 단위">
+                <button type="button" class="chip" data-rmode="반기" aria-pressed="false">반기</button>
+                <button type="button" class="chip" data-rmode="연간" aria-pressed="false">연간</button>
+              </div>
+            </div>
+
+            <!-- 카테고리별 → 자원별 → 오래 안 쓴 자원. 셋 다 ▸ 로 접는다 -->
+            <div class="rstat" id="rstat-categories"></div>
+            <div class="rstat" id="rstat-resources"></div>
+            <div class="state" id="rstat-state" hidden></div>
+            <div class="rstat" id="rstat-idle" hidden></div>
+          </section>
+
+          <!-- 카테고리 관리 (자원사전 대신 뜬다) -->
+          <section class="view" id="view-resource-categories" hidden>
+            <div class="detail__head">
+              <button type="button" class="back" id="rescat-back">← 자원사전으로</button>
+              <div class="detail__who">
+                <h2 class="view__title">카테고리 관리</h2>
+                <p class="detail__meta">
+                  이름을 바꾸면 그 카테고리의 자원도 함께 옮겨집니다.
+                  자원이 남아 있는 카테고리는 지울 수 없습니다.
+                </p>
+              </div>
+            </div>
+
+            <div class="card card--pad">
+              <ul class="rescat" id="rescat-list"></ul>
+
+              <form class="rescat__add" id="rescat-add-form">
+                <label class="visually-hidden" for="rescat-new">새 카테고리 이름</label>
+                <input
+                  type="text"
+                  class="input"
+                  id="rescat-new"
+                  maxlength="30"
+                  placeholder="새 카테고리 이름"
+                  required
+                />
+                <button type="submit" class="btn btn--primary">추가</button>
+              </form>
+            </div>
+          </section>
+
+          <!-- 일지 목록 (프로그램 / 일상 / 회의록 / 봉사 공용) -->
+          <section class="view" id="view-journal-list" hidden>
+            <div class="view__head view__head--narrow-hide">
+              <h2 class="view__title" id="journal-title"></h2>
+              <p class="view__count" id="journal-count"></p>
+            </div>
+
+            <div class="toolbar jtoolbar">
+              <div class="period period--main" id="journal-period">
+                <button type="button" class="btn btn--icon" id="month-prev" aria-label="이전 달">
+                  ‹
+                </button>
+                <label class="visually-hidden" for="month-input">조회할 달</label>
+                <span class="period__month">
+                  <input type="month" class="input" id="month-input" />
+                </span>
+                <!-- 달 글자·📅 둘 다 같은 달·날짜(기간) 판(m/month_picker.js). 보이는 표시는 📅 하나(▾ 없음). 달 입력칸(브라우저 기본 달력)은 숨긴다 -->
+                <button type="button" class="period__pick" id="month-pick" aria-haspopup="dialog"></button>
+                <button type="button" class="btn btn--icon period__cal" id="month-cal" aria-haspopup="dialog" aria-label="날짜·기간 고르기" title="날짜·기간 고르기">
+                  <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>
+                </button>
+                <button type="button" class="period__clear narrow-only" id="month-pick-clear" aria-label="기간 풀고 달 전체로" hidden>×</button>
+                <button type="button" class="btn btn--icon" id="month-next" aria-label="다음 달">
+                  ›
+                </button>
+              </div>
+              <!-- 넓은 화면: 고른 날짜·기간. [×] 는 달 전체로 -->
+              <span class="jrange wide-only" id="journal-range-wide" hidden>
+                <span id="journal-range-label"></span>
+                <button type="button" class="jrange__clear" id="journal-range-clear" aria-label="기간 풀고 달 전체로">×</button>
+              </span>
+              <!-- 좁은 화면: 넓은 화면에서 건 검색이 있으면 여기 적는다(검색창은 좁은 화면에 없다) -->
+              <p class="period__count period__count--range narrow-only" id="journal-range-narrow" hidden></p>
+
+              <!-- 넓은 화면: 통합 검색 — 작성자 이름·본문·제목. 봉사일지에서 "봉사자"·"멘토" 는 역할로 거른다(서버 검색) -->
+              <span class="jsearch wide-only">
+                <label class="visually-hidden" for="journal-q">일지 검색</label>
+                <input
+                  type="search"
+                  class="input jsearch__input"
+                  id="journal-q"
+                  placeholder="작성자·내용 검색"
+                  maxlength="30"
+                  autocomplete="off"
+                />
+              </span>
+
+              <!-- 보고 있는 달(기간)에서 아직 분석 안 된 일지를 한꺼번에 돌린다 -->
+              <div class="jtools">
+                <button type="button" class="btn" id="journal-batch">미분석 일괄 분석</button>
+                <button type="button" class="btn btn--primary btn--small narrow-only" id="journal-add-open-narrow">
+                  + 일지 작성
+                </button>
+              </div>
+
+              <button type="button" class="btn btn--primary wide-only" id="journal-add-open">
+                + 일지 작성
+              </button>
+            </div>
+
+            <!-- 일괄 분석 진행 상황. 돌 때만 보인다. -->
+            <p class="form__hint jbatch" id="journal-batch-state" hidden></p>
+
+            <!-- 일정은 있는데 일지가 없는 날. 봉사일지에서만 뜬다. -->
+            <div class="missing" id="journal-missing" hidden></div>
+
+            <div class="jlist" id="journal-list"></div>
+            <!-- 목록은 15건씩. 남은 것이 있을 때만 보인다. -->
+            <div class="more" id="journal-more-box" hidden>
+              <button type="button" class="btn" id="journal-more">더 보기</button>
+            </div>
+            <div class="state" id="journal-state" hidden></div>
+          </section>
+
+          <!-- 종사자 일지 작성/수정 (목록 대신 뜬다). 봉사일지는 모달을 쓴다. -->
+          <section class="view" id="view-journal-form" hidden>
+            <div class="detail__head">
+              <button type="button" class="back" id="journal-back">← 목록으로</button>
+              <div class="detail__who">
+                <h2 class="view__title" id="journal-form-heading"></h2>
+                <p class="detail__meta" id="journal-form-sub"></p>
+              </div>
+            </div>
+
+            <form class="form form--page" id="journal-form">
+              <div class="notice notice--privacy"></div>
+
+              <div class="form__row">
+                <div class="field">
+                  <label class="field__label" for="journal-date">날짜</label>
+                  <input type="date" class="input" id="journal-date" required />
+                </div>
+                <!-- 새로 쓸 때는 로그인한 본인이 작성자라 숨긴다(서버도 세션으로 정한다). 수정에서만 보인다. -->
+                <div class="field" id="journal-author-field">
+                  <label class="field__label" for="journal-author">작성자</label>
+                  <select class="input" id="journal-author"></select>
+                  <p class="form__hint">본인이면 그대로 두세요. 다른 선생님 대신 쓸 때만 바꿉니다.</p>
+                </div>
+              </div>
+
+              <div class="field">
+                <label class="field__label" for="journal-form-title">제목</label>
+                <input type="text" class="input" id="journal-form-title" maxlength="200" />
+              </div>
+
+              <div class="field">
+                <label class="field__label" for="journal-form-content">내용</label>
+                <textarea class="input textarea" id="journal-form-content" rows="15" required></textarea>
+              </div>
+
+              <div class="form__actions form__actions--stick">
+                <button type="submit" class="btn btn--primary" id="journal-submit">저장</button>
+                <button type="button" class="btn" id="journal-cancel">취소</button>
+              </div>
+            </form>
+          </section>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- 일지에서 관찰 가져오기 — 화면을 덮는 모달 -->
+    <!--
+      봉사일지 작성·수정 모달.
+      종사자 일지(제목 + 긴 본문)와 달리 일정에 매여 있고 칸이 적어 모달이 맞다.
+      시각은 일정에서 읽어 보여만 준다 — 고칠 곳은 스케줄 화면이다.
+    -->
+    <div class="modal" id="vj-modal" hidden>
+      <div class="modal__backdrop" id="vj-backdrop"></div>
+      <form
+        class="modal__dialog form--modal modal__dialog--wide modal__dialog--write"
+        id="vj-form"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="vj-title"
+      >
+        <div class="modal__head">
+          <h3 class="card__title" id="vj-title">봉사일지 작성</h3>
+        </div>
+
+        <div class="notice notice--privacy"></div>
+
+        <!-- 작성할 때만. 수정에서는 날짜·작성자를 바꾸지 않는다. -->
+        <div class="form__row form__row--two" id="vj-pick">
+          <div class="field">
+            <label class="field__label" for="vj-date">날짜</label>
+            <input type="date" class="input" id="vj-date" required />
+          </div>
+          <div class="field">
+            <label class="field__label" for="vj-author">작성자</label>
+            <select class="input" id="vj-author"></select>
+          </div>
+        </div>
+
+        <!-- 수정할 때. 날짜·작성자·시각을 읽기만 한다. -->
+        <p class="vj__meta" id="vj-meta" hidden></p>
+
+        <p class="form__hint" id="vj-note"></p>
+
+        <div class="field">
+          <label class="field__label" for="vj-content">내용</label>
+          <textarea class="input textarea" id="vj-content" rows="12" required></textarea>
+        </div>
+
+        <div class="modal__actions modal__actions--stick">
+          <button type="submit" class="btn btn--primary" id="vj-submit">저장</button>
+          <button type="button" class="btn" id="vj-cancel">취소</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- 일정 등록·수정 모달. 날짜를 하나씩 더해 한 번에 넣는다. -->
+    <div class="modal" id="sched-modal" hidden>
+      <div class="modal__backdrop" id="sched-backdrop"></div>
+      <form
+        class="modal__dialog form--modal"
+        id="sched-form"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="sched-form-title"
+      >
+        <div class="modal__head">
+          <h3 class="card__title" id="sched-form-title">일정 등록</h3>
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="sched-person">사람</label>
+          <select class="input" id="sched-person" required></select>
+        </div>
+
+        <!-- 겸직인 사람을 고르면 나타난다. 이 일정이 어느 역할 활동인지 -->
+        <div class="field" id="sched-role-field" hidden>
+          <label class="field__label" for="sched-role">역할</label>
+          <select class="input" id="sched-role"></select>
+        </div>
+
+        <div class="field">
+          <span class="field__label" id="sched-dates-label">날짜</span>
+          <p class="form__hint">줄마다 시각을 따로 고칠 수 있습니다.</p>
+          <div class="daterows" id="sched-dates"></div>
+          <button type="button" class="linkbtn" id="sched-add-date">+ 날짜 추가</button>
+        </div>
+
+        <p class="form__hint" id="sched-preview"></p>
+
+        <div class="modal__actions">
+          <button type="submit" class="btn btn--primary" id="sched-submit">등록</button>
+          <button type="button" class="btn" id="sched-cancel">취소</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- 직원 등록·수정 모달. 관찰 가져오기 창과 같은 뼈대를 쓴다. -->
+    <div class="modal" id="staff-modal" hidden>
+      <div class="modal__backdrop" id="staff-backdrop"></div>
+      <form
+        class="modal__dialog modal__dialog--narrow form--modal"
+        id="staff-form"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="staff-form-title"
+      >
+        <div class="modal__head">
+          <h3 class="card__title" id="staff-form-title"></h3>
+        </div>
+
+        <div class="form__row form__row--two">
+          <div class="field">
+            <label class="field__label" for="staff-name">이름</label>
+            <input type="text" class="input" id="staff-name" maxlength="100" required />
+          </div>
+          <div class="field">
+            <label class="field__label" for="staff-phone">전화번호</label>
+            <input type="tel" class="input" id="staff-phone" maxlength="50" />
+          </div>
+        </div>
+
+        <div class="form__row form__row--two">
+          <!-- 역할은 여럿 고를 수 있다(겸직). 하나 이상 골라야 한다. -->
+          <fieldset class="field rolepick">
+            <legend class="field__label">역할 <span class="field__hint">(겸직이면 여럿)</span></legend>
+            <div class="rolepick__list" id="staff-role"></div>
+          </fieldset>
+          <div class="field" id="staff-status-field" hidden>
+            <label class="field__label" for="staff-status">상태</label>
+            <select class="input" id="staff-status"></select>
+          </div>
+        </div>
+
+        <div class="modal__actions">
+          <button type="submit" class="btn btn--primary" id="staff-submit">저장</button>
+          <button type="button" class="btn" id="staff-cancel">취소</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="modal" id="import-modal" hidden>
+      <div class="modal__backdrop" id="import-backdrop"></div>
+      <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="import-title">
+        <div class="modal__head">
+          <h3 class="card__title" id="import-title">일지에서 관찰 가져오기</h3>
+          <button type="button" class="linkbtn" id="import-all">전체 선택</button>
+        </div>
+
+        <p class="form__hint">
+          일지에서 뽑힌 관찰 후보입니다. [관찰 가져오기]를 하면 이 아동의 관찰로 들어가고(영역은 미지정),
+          영역은 날짜별 관찰에서 직접 고르시면 됩니다.
+        </p>
+
+        <div class="importlist" id="import-list"></div>
+        <div class="state state--inline" id="import-state" hidden></div>
+
+        <div class="modal__actions">
+          <button type="button" class="btn btn--primary" id="import-submit">
+            선택한 관찰 가져오기
+          </button>
+          <button type="button" class="btn" id="import-cancel">닫기</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 저장 결과를 짧게 알리는 스낵바 -->
+    <div class="snackbar" id="snackbar" role="status" aria-live="polite" hidden></div>
+
+    <script type="module" src="/assets/app.js"></script>
+  </body>
+</html>

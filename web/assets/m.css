@@ -1,0 +1,1648 @@
+/* =========================================================
+   봉사자 폰 화면
+
+   PC 화면(style.css)을 안 불러온다. 저 파일은 66KB 인데 여기서 쓰는 것이
+   하나도 없다. 색과 여백은 tokens.css 에서 함께 온다.
+
+   폰에서 지키는 것
+   - 입력칸 글자 16px 이상. 그보다 작으면 iOS 가 탭할 때 화면을 확대하고
+     확대된 채로 남는다. 사람이 손으로 되돌려야 한다.
+   - 누르는 것은 44px 이상. 손끝은 마우스 끝보다 넓다.
+   - hover·title 에 기대지 않는다. 손가락에는 hover 가 없고 title 은 읽을 방법이 없다.
+   ========================================================= */
+
+html,
+body {
+  height: 100%;
+}
+
+/* 입력칸 글자 16px — 이 한 곳에서 정한다(칸마다 따로 적지 않는다) */
+input,
+select,
+textarea {
+  font-size: 16px;
+}
+
+.mbody {
+  margin: 0;
+  display: grid;
+  /* 위 제목줄 · 가운데 본문 · 아래 탭. 본문만 굴러간다. */
+  grid-template-rows: auto 1fr auto;
+  height: 100%;
+  background: var(--surface-sunken);
+  color: var(--text);
+  font-family: "Noto Sans KR", "Pretendard", system-ui, "Apple SD Gothic Neo", sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  /* 아래로 당겼다 놓을 때 페이지 전체가 튀지 않게 */
+  overscroll-behavior-y: contain;
+}
+
+/* ---------- 제목줄 ---------- */
+
+.mbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s2);
+  padding: var(--s2);
+  /* 노치가 있는 폰에서 글자가 가려지지 않게 */
+  padding-top: calc(var(--s2) + env(safe-area-inset-top));
+  background: var(--green);
+  color: #fff;
+}
+
+.mbar__title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+/* 지금 누구인지 늘 보인다. 공용 기기가 아니어도 계정이 헷갈리면 곤란하다. */
+.mbar__who {
+  /* 이름이 길거나 역할 태그가 붙어도 한 줄 안에서 줄어든다 — 화면을 옆으로 밀지 않게 */
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  font-size: 14px;
+  opacity: 0.9;
+  white-space: nowrap;
+}
+
+.mbar__who > span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---------- 본문 ---------- */
+
+.mmain {
+  min-height: 0;
+  padding: var(--s2) var(--s2) var(--s4);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mhead {
+  margin: var(--s3) 0 var(--s1);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.mhead:first-child {
+  margin-top: 0;
+}
+
+.mnote {
+  margin: 0 0 var(--s2);
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.mempty,
+.mrow--empty {
+  margin: 0;
+  padding: var(--s2);
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.mstate {
+  padding: var(--s4) var(--s2);
+  text-align: center;
+  color: var(--text-muted);
+}
+
+/* 담아 둔 화면을 보여 주는 중이라는 알림. 막지 않고 알리기만 한다. */
+.mstale {
+  margin-bottom: var(--s2);
+  padding: var(--s1) var(--s2);
+  background: var(--warn-surface);
+  border-radius: var(--radius-sm);
+  color: var(--warn-text);
+  font-size: 13px;
+}
+
+/* ---------- 줄 ---------- */
+
+.mlist {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mrow {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px var(--s2);
+  /* 손끝이 닿을 만한 높이. 줄이 짧아도 44px 아래로 내려가지 않게. */
+  min-height: 44px;
+  padding: 10px var(--s2);
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+}
+
+.mrow__main {
+  font-weight: 500;
+}
+
+.mrow__sub {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+/* ---------- 일지 카드 ---------- */
+
+.mcardrow {
+  padding: var(--s2);
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+}
+
+.mcardrow__head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--s1);
+  margin-bottom: 6px;
+}
+
+.mcardrow__body {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* 일지 본문 접기(m/fold.js) — 줄 수만 화면마다 */
+.fold {
+  --fold-lines: 2;
+}
+
+.fold.is-folded {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--fold-lines);
+  overflow: hidden;
+}
+
+.fold__toggle {
+  align-self: flex-start;
+}
+
+.fold__toggle.mlink {
+  min-height: 32px;
+  padding: 0;
+}
+
+.mtag {
+  padding: 1px 10px;
+  border-radius: 999px;
+  background: var(--green-surface);
+  color: var(--green);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* 수퍼비전 댓글. 종사자가 남긴 말이라 눈에 띄어야 한다. */
+.mcomment {
+  margin: var(--s1) 0 0;
+  padding: var(--s1) var(--s2);
+  background: var(--surface-sunken);
+  border-left: 3px solid var(--green);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  color: var(--text-muted);
+  white-space: pre-wrap;
+}
+
+/* ---------- 통계 ---------- */
+
+.msum {
+  margin-bottom: var(--s2);
+  padding: var(--s3) var(--s2);
+  background: var(--surface);
+  border-radius: var(--radius);
+  text-align: center;
+}
+
+.msum__head {
+  margin: 0 0 4px;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.msum__body {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--green);
+}
+
+/* 겸직자만 — 역할별로 가른 줄. 합계 아래 작게 */
+.msum__split,
+.mrow__split {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.msum__split {
+  margin-top: var(--s1);
+}
+
+.mrow__split {
+  flex-basis: 100%;
+}
+
+/* ---------- 나 ---------- */
+
+.mcard {
+  padding: var(--s3) var(--s2);
+  margin-bottom: var(--s2);
+  background: var(--surface);
+  border-radius: var(--radius);
+}
+
+.mcard__name {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.mcard__sub {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+}
+
+.mbtn {
+  min-height: 48px;
+  padding: 0 var(--s3);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.mbtn--wide {
+  display: block;
+  width: 100%;
+}
+
+/* ---------- 하단 탭 ---------- */
+
+.mtabs {
+  display: grid;
+  /* 셋이다. 관찰은 일지 안으로, 통계는 나 안으로 들어갔다. */
+  grid-template-columns: repeat(3, 1fr);
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  /* 홈 인디케이터 바가 있는 폰에서 탭이 가려지지 않게 */
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.mtab {
+  /* 엄지로 누르는 자리라 넉넉히 */
+  min-height: 52px;
+  border: 0;
+  background: none;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  /* 탭할 때 파란 사각형이 번쩍이지 않게 */
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mtab.is-on {
+  color: var(--green);
+  font-weight: 700;
+  box-shadow: inset 0 2px 0 var(--green);
+}
+
+.mtab:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: -2px;
+}
+
+/* ---------- 스낵바 (PC 와 같은 모양) ---------- */
+
+.snackbar {
+  position: fixed;
+  left: var(--s2);
+  right: var(--s2);
+  bottom: calc(64px + env(safe-area-inset-bottom));
+  z-index: 20;
+  padding: var(--s2);
+  border-radius: var(--radius-sm);
+  background: var(--text);
+  color: #fff;
+  text-align: center;
+}
+
+.snackbar--error {
+  background: var(--danger);
+}
+
+/* ---------- 줄 안의 작은 동작 ---------- */
+
+.mtop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s2);
+  margin: var(--s3) 0 var(--s1);
+}
+
+.mtop:first-child,
+/* 앞의 반기 관찰 배너를 숨겨 둔 동안(2026-09-17)은 머리줄이 곧 첫 요소 */
+.mbanner[hidden] + .mtop {
+  margin-top: 0;
+}
+
+.mtop .mhead,
+.mtop .mnote {
+  margin: 0;
+}
+
+.mrow__acts {
+  display: flex;
+  gap: var(--s2);
+  margin-left: auto;
+}
+
+/* 줄 안에서 누르는 작은 글자. 글자만 작고 누르는 자리는 44px 을 지킨다. */
+.mlink {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: var(--green);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mlink--danger {
+  color: var(--danger);
+}
+
+.mbtn--primary {
+  background: var(--green);
+  border-color: var(--green);
+  color: #fff;
+}
+
+.mbtn--small {
+  min-height: 44px;
+  padding: 0 var(--s2);
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+/* ---------- 아래에서 올라오는 입력 시트 ---------- */
+
+/*
+ * 폰에서는 화면 가운데 뜨는 창이 키보드에 반쯤 가린다.
+ * 아래에서 올라와 위쪽을 채우면 키보드가 올라와도 적는 칸이 보인다.
+ */
+.msheet {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.msheet__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgb(0 0 0 / 0.4);
+}
+
+.msheet__panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  max-height: 92%;
+  overflow-y: auto;
+  padding: var(--s3) var(--s2) calc(var(--s3) + env(safe-area-inset-bottom));
+  background: var(--surface);
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+
+.msheet__title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.msheet__error {
+  margin: 0;
+  padding: var(--s1) var(--s2);
+  background: var(--warn-surface);
+  border-radius: var(--radius-sm);
+  color: var(--danger);
+  font-size: 14px;
+}
+
+.msheet__actions {
+  display: flex;
+  gap: var(--s1);
+  margin-top: var(--s1);
+}
+
+.msheet__actions .mbtn {
+  flex: 1 1 0;
+}
+
+.mfield {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mfield__label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+/* 글자 크기는 위 공통 규칙(16px)을 따른다. font 묶음으로 물려받으면 그 규칙을 덮으므로 글꼴만 받는다. */
+.mfield__input {
+  min-height: 48px;
+  padding: var(--s1) var(--s2);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font-family: inherit;
+  line-height: inherit;
+}
+
+textarea.mfield__input {
+  min-height: 120px;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.mfield__input:read-only {
+  background: var(--surface-sunken);
+  color: var(--text-muted);
+}
+
+.mfield__hint {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* ---------- 뒤로 (탭 아닌 화면에서만) ---------- */
+
+.mbar__back {
+  min-height: 44px;
+  margin: -10px 0 -10px calc(var(--s1) * -1);
+  padding: 0 var(--s1);
+  border: 0;
+  background: none;
+  color: #fff;
+  font: inherit;
+  font-size: 15px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ---------- 달력 ---------- */
+
+/*
+ * 한 화면에 한 달이 다 들어가야 한다. 스크롤해서 봐야 하는 달력은
+ * "이번 주에 언제 가지" 를 한눈에 못 준다.
+ */
+.mcal {
+  /* 옆 여백은 8px — 375px 폰에서 일곱 칸이 각 44px 이상 되게(16px 이면 43px) */
+  padding: var(--s2) var(--s1);
+  margin-bottom: var(--s2);
+  background: var(--surface);
+  border-radius: var(--radius);
+}
+
+.mcal__bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s2);
+}
+
+.mcal__month {
+  min-width: 8em;
+  text-align: center;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.mcal__nav {
+  /* 손끝이 닿는 자리. 화살표 글자는 작아도 누르는 칸은 44px 이다. */
+  min-width: 44px;
+  min-height: 44px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 22px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mcal__week,
+.mcal__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.mcal__week {
+  margin: var(--s1) 0 4px;
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.mcal__day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  /* 일곱 칸이 한 줄이라 칸 하나가 44px 을 못 채운다. 세로로 벌어 손끝이 닿게 한다. */
+  min-height: 46px;
+  padding: 2px 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mcal__day--blank {
+  cursor: default;
+}
+
+.mcal__num {
+  font-size: 15px;
+  line-height: 1.1;
+}
+
+.mcal__day.is-today .mcal__num {
+  font-weight: 700;
+  color: var(--green);
+}
+
+/* 내가 가는 날은 칸 전체가 옅게 물든다. 점만으로는 훑을 때 안 보인다. */
+.mcal__day.is-mine {
+  background: var(--green-surface);
+}
+
+.mcal__day.is-picked {
+  border-color: var(--green);
+}
+
+.mcal__day:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: -2px;
+}
+
+.mcal__dots {
+  display: flex;
+  gap: 2px;
+  min-height: 6px;
+}
+
+.mcal__dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--border-strong);
+}
+
+.mcal__dot--mine {
+  background: var(--green);
+}
+
+/* ---------- 켰다 껐다 하는 것 ---------- */
+
+.mtoggle {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  margin-top: var(--s1);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mtoggle.is-on {
+  border-color: var(--green);
+  background: var(--green-surface);
+  color: var(--green);
+  font-weight: 700;
+}
+
+/* 둘 중 하나를 고르는 띠 */
+.mseg {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  margin-bottom: var(--s1);
+  padding: 2px;
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+}
+
+.mseg__item {
+  min-height: 44px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mseg__item.is-on {
+  background: var(--green-surface);
+  color: var(--green);
+  font-weight: 700;
+}
+
+/* ---------- 나 탭 버튼 사이 ---------- */
+
+.mbtn--gap {
+  margin-top: var(--s3);
+}
+
+/* ---------- 아직 안 한 것 ---------- */
+
+/* 안 쓴 일지·안 쓴 관찰. 나무라는 색이 아니라 눈에 띄는 정도로만. */
+.mrow--undone {
+  border-left: 3px solid var(--warn-text);
+}
+
+.mtag--todo {
+  background: var(--warn-surface);
+  color: var(--warn-text);
+}
+
+.mrow__main--mine {
+  color: var(--green);
+}
+
+/* ---------- 다른 화면으로 가는 배너 ---------- */
+
+/*
+ * 반기 관찰 입구. 일지 목록과 하는 일이 달라(아이별 · 반기에 한 번)
+ * 목록에 섞이지 않게 띄워 둔다. 오른쪽 꺾쇠가 "여기 들어간다" 를 말한다.
+ */
+.mbanner {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  width: 100%;
+  min-height: 64px;
+  margin-bottom: var(--s3);
+  padding: var(--s2);
+  border: 1px solid var(--green);
+  border-radius: var(--radius);
+  background: var(--green-surface);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mbanner__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.mbanner__title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--green);
+}
+
+.mbanner__sub {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.mbanner__go {
+  margin-left: auto;
+  font-size: 22px;
+  color: var(--green);
+}
+
+/* ---------- 마감된 반기 ---------- */
+
+.mclosed {
+  margin-bottom: var(--s2);
+  padding: var(--s2);
+  background: var(--warn-surface);
+  border-radius: var(--radius-sm);
+  color: var(--warn-text);
+  font-size: 14px;
+}
+
+/* 달력 없이 달만 넘기는 줄 (일지 탭) */
+.mcal__bar--flat {
+  margin-bottom: var(--s1);
+  padding: 2px;
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+}
+
+/* ---------- 날짜 여러 줄 (일정 넣기) ---------- */
+
+.mdates {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
+/*
+ * 한 줄에 날짜와 시각을 다 넣으면 폰 너비에서 칸이 손톱만 해진다.
+ * 날짜를 위에, 시각을 아래에 둔다.
+ */
+.mdate {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--s1) 0;
+  border-top: 1px solid var(--border);
+}
+
+.mdate:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.mdate__times {
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+}
+
+.mdate__time {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.mdate__tilde {
+  color: var(--text-muted);
+}
+
+.mdate__times .mlink {
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.mdate__times .mlink:disabled {
+  color: var(--text-muted);
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* =========================================================
+   확인창 (지울까요?)
+
+   ui.js 의 confirmDialog 가 만드는 것을 폰에서도 읽히게 한다.
+   그쪽 마크업은 PC 와 한 벌이고 클래스 이름도 PC 것이다 —
+   여기서 모양만 폰에 맞춘다(입력 시트와 같은 자리에서 올라오게).
+
+   이 블록이 없으면 확인창이 아무 꾸밈 없이 문서 끝에 글자로만 붙어
+   "삭제를 눌렀는데 화면이 이상해지는" 것으로 보인다.
+   ========================================================= */
+
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.modal[hidden] {
+  display: none;
+}
+
+.modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgb(0 0 0 / 0.4);
+}
+
+.modal__dialog {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  max-height: 92%;
+  overflow-y: auto;
+  padding: var(--s3) var(--s2) calc(var(--s3) + env(safe-area-inset-bottom));
+  background: var(--surface);
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+
+.confirm__title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.confirm__target {
+  margin: 0;
+  font-weight: 500;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.confirm__message {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-muted);
+  white-space: pre-wrap;
+}
+
+.confirm__preview {
+  margin: 0;
+  padding: var(--s1) var(--s2);
+  background: var(--surface-sunken);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: 14px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.modal__actions {
+  display: flex;
+  gap: var(--s1);
+  margin-top: var(--s1);
+}
+
+/*
+ * 확인창 버튼은 PC 클래스(.btn)로 만들어진다. 폰에서는 시트 버튼과 같게 보이도록
+ * 여기서 한 번 맞춘다 — 손끝이 닿는 48px, 글자 16px.
+ */
+.modal__actions .btn {
+  flex: 1 1 0;
+  min-height: 48px;
+  padding: 0 var(--s3);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.modal__actions .btn--danger {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+}
+
+.modal__actions .btn--primary {
+  background: var(--green);
+  border-color: var(--green);
+  color: #fff;
+}
+
+/* ---------- 화면을 채우는 긴 시트 ---------- */
+
+.msheet__panel--tall {
+  max-height: 100%;
+  height: 100%;
+  border-radius: 0;
+  padding-top: calc(var(--s3) + env(safe-area-inset-top));
+}
+
+/* ---------- 반기 관찰 점수 ---------- */
+
+.mguide {
+  margin: 0;
+  padding: var(--s1) var(--s2);
+  background: var(--green-surface);
+  border-radius: var(--radius-sm);
+  color: var(--green);
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* 생활 · 교육 · 정서 */
+.marea {
+  margin: var(--s2) 0 0;
+  padding-bottom: 4px;
+  border-bottom: 2px solid var(--green);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--green);
+}
+
+.mscore {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: var(--s1) 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.mscore__text {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.mscore--deleted .mscore__text {
+  color: var(--text-muted);
+}
+
+/* 다섯 칸이 한 줄. 칸 하나가 손끝보다 커야 한다. */
+.mscore__row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+}
+
+.mscore__btn {
+  min-height: 44px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 고른 칸은 녹색으로 채운다. 영역마다 색을 달리하지 않는다 — 포인트 색은 하나다. */
+.mscore__btn[aria-pressed="true"] {
+  background: var(--green);
+  border-color: var(--green);
+  color: #fff;
+}
+
+.mscore__btn:disabled {
+  cursor: default;
+}
+
+.mscore__btn:disabled:not([aria-pressed="true"]) {
+  color: var(--text-muted);
+  background: var(--surface-sunken);
+}
+
+.mscore__btn:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+}
+
+.mnote--center {
+  margin-top: var(--s2);
+  text-align: center;
+}
+
+/* 나눠 받는 목록의 끝 줄. 화면에 들어오면 다음 쪽을 받는다. */
+.mmore {
+  margin: var(--s2) 0;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+/* ---------- 겸직 — 지금 역할 ---------- */
+
+/* 위 줄 이름 옆 작은 태그. 겸직자만 보인다. */
+.mbar__role {
+  flex: none;
+  margin-left: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  font-size: 13px;
+}
+
+/* 시트 제목 아래 — 이 기록이 어느 역할로 남는지 */
+.msheet__role {
+  margin: -4px 0 var(--s1);
+  color: var(--green);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.mcard__role {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s1);
+  margin-top: var(--s1);
+  font-size: 15px;
+}
+
+/* 역할 고르기. 닫기가 없다 — 골라야 기록을 남길 수 있다. */
+.mrole {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: var(--s2);
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.mrole[hidden] {
+  display: none;
+}
+
+.mrole__panel {
+  width: min(100%, 24rem);
+  padding: var(--s3);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.mrole__title {
+  margin: 0 0 var(--s1);
+  font-size: 20px;
+}
+
+.mrole__hint {
+  margin: 0 0 var(--s2);
+  color: var(--text-muted);
+  font-size: 15px;
+}
+
+.mwelcome__todo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  margin: 0 0 var(--s2);
+  padding: var(--s2);
+  border-radius: var(--radius);
+  background: var(--warn-surface);
+}
+
+.mwelcome__todo[hidden] {
+  display: none;
+}
+
+.mwelcome__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s1);
+}
+
+.mwelcome__text {
+  margin: 0;
+  font-size: 15px;
+}
+
+.mrole__choices {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+}
+
+.mrole__error {
+  margin: var(--s1) 0 0;
+  color: var(--danger);
+  font-size: 14px;
+}
+
+/* ---------- 역할 거르기·역할 알약 (m/role_chips.js) ---------- */
+
+/* 칸 셋짜리 띠 — [전체] [봉사자] [멘토] */
+.mseg--3 {
+  grid-template-columns: repeat(3, 1fr);
+  margin-top: var(--s1);
+}
+
+/* 이름 옆 역할 — 작은 회색 태그(이름 알약과 겹쳐 보이지 않게 테두리만) */
+.mrolepill {
+  padding: 0 var(--s1);
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 20px;
+  white-space: nowrap;
+}
+
+.mrow .mrolepill {
+  align-self: center;
+}
+
+/* 점 모양 = 역할(봉사자 ●, 멘토 ■). 색은 나/남 */
+.mcal__dot--mentor {
+  border-radius: 1px;
+}
+
+.mcal__legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px var(--s1);
+  margin: var(--s1) 0 0;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.mcal__legend .mcal__dot {
+  width: 8px;
+  height: 8px;
+}
+
+.mcal__legend .mcal__dot:not(:first-child) {
+  margin-left: var(--s1);
+}
+
+/* ---------- [나] 머리줄 — 지금 역할 + 이름 배지 ---------- */
+
+.mbar__title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mbar__who[hidden] {
+  display: none;
+}
+
+/* ---------- [나] 본문 — 카드 셋 ---------- */
+
+/* 섹션 제목은 카드 밖 위에 작게 — 훑어볼 때 이것만 읽어도 어디인지 안다 */
+.msec__title {
+  margin: var(--s3) 0 var(--s1) var(--s1);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+}
+
+.msec__title:first-child {
+  margin-top: 0;
+}
+
+.msec {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  padding: var(--s2);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+/* 카드 안의 목록 — 카드와 같은 흰 바탕이면 줄이 안 보여 한 단계 낮춘다 */
+.msec .msum {
+  margin: 0;
+  padding: 0;
+  background: none;
+}
+
+.msec__list .mcardrow {
+  background: var(--surface-sunken);
+}
+
+.msec .mempty {
+  margin: 0;
+}
+
+.msum__head {
+  text-align: center;
+}
+
+/* 큰 숫자 셋 — 올해 합계 */
+.msum__nums {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--s1);
+}
+
+.msum__num {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--s1) 0;
+  background: var(--green-surface);
+  border-radius: var(--radius-sm);
+}
+
+.msum__num strong {
+  font-size: 28px;
+  line-height: 1.2;
+  color: var(--green);
+  font-variant-numeric: tabular-nums;
+}
+
+.msum__num span {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* 달별 — 카드 안에서 선으로 나눈다 */
+.mmonths {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--border);
+}
+
+.mmonth {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 2px var(--s2);
+  min-height: 44px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.mmonth:last-child {
+  border-bottom: 0;
+}
+
+.mmonth__name {
+  font-weight: 700;
+}
+
+.mmonth__nums {
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+
+.mmonth--empty {
+  justify-content: center;
+  color: var(--text-muted);
+}
+
+.mmonth .mrow__split {
+  flex-basis: 100%;
+}
+
+.msec--app {
+  gap: var(--s1);
+}
+
+.mbtn--quiet-danger {
+  color: var(--danger);
+}
+
+/* 보낸 문의가 없을 때 빈 목록이 카드 안 간격만 먹지 않게 */
+.msec__list:empty {
+  display: none;
+}
+
+.msec .mempty {
+  padding: var(--s1) 0;
+}
+
+/* =========================================================
+   다듬기 최종판 — 머리줄 통일 · 한 줄 일정 · 월 이동 · 달·날짜 고르기
+   ========================================================= */
+
+/* 머리줄 — 모든 탭: 첫 글자 원 + 이름 + 역할 알약 (+ 겸직자 전환 아이콘) */
+.mbar__who {
+  gap: 6px;
+  opacity: 1;
+  margin-left: auto;
+}
+
+.mbar__initial {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--green);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.mbar__initial[hidden] {
+  display: none;
+}
+
+.mbar__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.mbar__role {
+  margin-left: 0;
+  font-size: 12px;
+  line-height: 20px;
+  padding: 0 8px;
+}
+
+.mbar__switch {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin: -10px -8px -10px -4px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: #fff;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mbar__switch:active {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.mbar__switch[hidden] {
+  display: none;
+}
+
+/* 월 이동 — 흰 상자 없이 글자와 화살표만 */
+.mcal__bar,
+.mcal__bar--flat {
+  margin: 0 0 var(--s1);
+  padding: 0;
+  background: none;
+  border-radius: 0;
+}
+
+.mmonthbtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 44px;
+  padding: 0 var(--s1);
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mmonthbtn__caret {
+  display: inline-flex;
+  color: var(--text-muted);
+}
+
+.mmonthbtn__clear {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-left: calc(var(--s2) * -1);
+  border: 0;
+  background: none;
+  color: var(--text-muted);
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.mmonthbtn__clear[hidden] {
+  display: none;
+}
+
+/* 달·날짜 고르기 판 — 월 이동줄 바로 아래 */
+.mpick {
+  margin: 0 0 var(--s2);
+  /* 옆 여백 8px — 375px 폰에서 날짜 칸이 각 44px 이상(달력과 같은 까닭) */
+  padding: var(--s2) var(--s1);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.mpick__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--s1);
+}
+
+.mpick__title {
+  font-weight: 700;
+}
+
+.mpick__nav {
+  width: 44px;
+  height: 44px;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.mpick__all {
+  margin-bottom: var(--s1);
+}
+
+.mpick__months {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+}
+
+.mpick__week,
+.mpick__days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  text-align: center;
+}
+
+.mpick__week {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.mpick__cell {
+  min-height: 44px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mpick__cell.is-on {
+  background: var(--green);
+  color: #fff;
+  font-weight: 700;
+}
+
+/* 일정 한 줄 — 접히지 않는다. 넘치면 글자 쪽이 줄어든다 */
+.mrow--line {
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 6px;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-right: 0;
+}
+
+.mrow--line .mrow__main {
+  flex: none;
+}
+
+.mrow__sub--line {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.mrow--line .mrow__acts {
+  flex: none;
+  gap: 0;
+}
+
+.micon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.micon--danger {
+  color: var(--danger);
+}
+
+/* 일지 — 안 쓴 일지 덩어리와 [전체 보기|내 일지] 사이를 뗀다 */
+#undone-box {
+  margin-bottom: var(--s3);
+}
+
+#undone-box .mhead {
+  margin-top: var(--s2);
+}
+
+/* 기간 고르기 — 사이 날짜는 옅게 칠하고, 시작·끝은 진하게 */
+.mpick__cell.is-range {
+  border-radius: 0;
+  background: var(--green-surface);
+  color: var(--green);
+}
+
+.mpick__hint {
+  margin: 0 0 var(--s1);
+  font-size: 13px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* 오늘 — 테두리 + 아래 점(고른 칸이어도 보이게 흰 테두리) */
+.mpick__cell.is-today {
+  position: relative;
+  box-shadow: inset 0 0 0 2px var(--green);
+  font-weight: 700;
+}
+
+.mpick__cell.is-today::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 5px;
+  width: 4px;
+  height: 4px;
+  margin-left: -2px;
+  border-radius: 50%;
+  background: var(--green);
+}
+
+.mpick__cell.is-today.is-on {
+  box-shadow: inset 0 0 0 2px #fff, 0 0 0 2px var(--green);
+}
+
+.mpick__cell.is-today.is-on::after {
+  background: #fff;
+}
+
+/* 판 위 "오늘 9월 17일(목)" — 다른 달을 보고 있으면 눌러서 돌아온다 */
+.mpick__today {
+  display: block;
+  width: 100%;
+  margin: 0 0 var(--s1);
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  color: var(--green);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+}
+
+.mpick__today:not(.is-away) {
+  cursor: default;
+}
+
+.mpick__today.is-away {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

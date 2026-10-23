@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>인쇄 · OK 시스템</title>
+    <link rel="stylesheet" href="/assets/tokens.css" />
+    <link rel="stylesheet" href="/assets/doc.css" />
+    <link rel="stylesheet" href="/assets/print.css" />
+  </head>
+  <body class="printpage">
+    <!--
+      인쇄 화면 — 브라우저 인쇄(window.print)로 A4 에 찍는다. PDF 라이브러리는 쓰지 않는다
+      (브라우저의 "PDF로 저장" 이 같은 결과를 낸다).
+      위 도구줄은 인쇄에 나오지 않는다. 종이에 들어갈 값(기간·작성일·작성자·제목)만 여기서 고친다 —
+      고친 값은 저장하지 않는다(이 종이 한 장에만).
+        /print?kind=observations&child=<id>&year=2026&half=1|2|all
+        /print?kind=evaluation&child=<id>&year=2026&half=1|2
+        /print?kind=consent
+    -->
+    <div class="ptool" id="ptool">
+      <div class="ptool__row">
+        <button type="button" class="pbtn" id="p-close">← 닫기</button>
+        <strong class="ptool__name" id="p-name">인쇄</strong>
+        <button type="button" class="pbtn pbtn--primary" id="p-print" disabled>인쇄</button>
+      </div>
+      <div class="ptool__fields" id="p-fields" hidden>
+        <label class="pfield" id="p-title-field" hidden>
+          <span>제목</span>
+          <input type="text" class="pinput" id="p-title" maxlength="30" />
+        </label>
+        <label class="pfield">
+          <span>연도</span>
+          <select class="pinput" id="p-year"></select>
+        </label>
+        <label class="pfield">
+          <span>기간</span>
+          <select class="pinput" id="p-half"></select>
+        </label>
+        <label class="pfield">
+          <span>작성일</span>
+          <input type="date" class="pinput" id="p-date" />
+        </label>
+        <label class="pfield pfield--wide">
+          <span>작성자</span>
+          <input type="text" class="pinput" id="p-author" maxlength="40" />
+        </label>
+      </div>
+      <fieldset class="pareas" id="p-areas" hidden>
+        <legend class="pareas__legend">찍을 영역</legend>
+        <div class="pareas__list" id="p-area-list"></div>
+      </fieldset>
+      <p class="ptool__note" id="p-note" hidden></p>
+      <p class="ptool__hint">종이 위·아래에 주소나 날짜가 찍히면 인쇄 설정에서 '머리글과 바닥글'을 꺼 주세요.</p>
+    </div>
+
+    <main class="paper" id="paper">
+      <p class="paper__state" id="p-state">불러오는 중…</p>
+    </main>
+
+    <script type="module" src="/assets/print.js"></script>
+  </body>
+</html>

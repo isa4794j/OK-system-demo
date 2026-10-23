@@ -1,0 +1,232 @@
+/* =========================================================
+   인쇄 화면(print.html) — 도구줄 + A4 종이 한 장
+   공개 처리방침(privacy.html)도 .paper 를 같이 쓴다.
+   ========================================================= */
+
+body.printpage {
+  margin: 0;
+  background: var(--surface-sunken);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  font-size: 14px;
+}
+
+/* ---------- 도구줄 (인쇄에 안 나온다) ---------- */
+
+.ptool {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  padding: var(--s1) var(--s2);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.ptool__row {
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+  max-width: 210mm;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.ptool__name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ptool__fields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--s1) var(--s2);
+  max-width: 210mm;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.ptool__note {
+  max-width: 210mm;
+  width: 100%;
+  margin: 0 auto;
+  padding: var(--s1) var(--s2);
+  background: var(--warn-surface);
+  color: var(--warn-text);
+  border-radius: var(--radius-sm);
+}
+
+.ptool__hint {
+  max-width: 210mm;
+  width: 100%;
+  margin: 0 auto;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* 찍을 영역 고르기(관찰일지·평가서) — 기본 전체 */
+.pareas {
+  max-width: 210mm;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0;
+  border: 0;
+}
+
+.pareas__legend {
+  padding: 0;
+  margin-bottom: 4px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.pareas__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px var(--s2);
+}
+
+.pareas__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  cursor: pointer;
+}
+
+.pareas__item input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--green);
+}
+
+.pfield {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.pfield--wide {
+  flex: 1 1 12rem;
+}
+
+.pinput {
+  min-height: 40px;
+  padding: 0 var(--s1);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+}
+
+.pbtn {
+  min-height: 40px;
+  padding: 0 var(--s2);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.pbtn--primary {
+  background: var(--green);
+  border-color: var(--green);
+  color: #fff;
+  font-weight: 700;
+}
+
+.pbtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pbtn:focus-visible,
+.pinput:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+}
+
+/* ---------- 종이 ---------- */
+
+.paper {
+  box-sizing: border-box;
+  width: 210mm;
+  max-width: calc(100% - 2 * var(--s2));
+  min-height: 297mm;
+  margin: var(--s3) auto;
+  padding: 15mm 14mm;
+  background: #fff;
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.06);
+}
+
+.paper__state {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.paper__state--error {
+  color: var(--danger);
+}
+
+@media screen and (max-width: 720px), screen and (pointer: coarse) {
+  .pinput,
+  .pbtn {
+    min-height: 44px;
+    font-size: 16px;
+  }
+
+  .paper {
+    min-height: 0;
+    padding: var(--s2);
+  }
+
+  /* 폰에서는 도구줄이 화면 절반을 덮는다 — 붙여 두지 않는다 */
+  .ptool {
+    position: static;
+  }
+}
+
+/* ---------- 인쇄 ---------- */
+
+@media print {
+  body.printpage {
+    background: #fff;
+    color: #000;
+  }
+
+  .ptool {
+    display: none !important;
+  }
+
+  .paper {
+    width: auto;
+    max-width: none;
+    min-height: 0;
+    margin: 0;
+    padding: 12mm 14mm;
+    border: 0;
+    box-shadow: none;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+}
+
+.plink {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}

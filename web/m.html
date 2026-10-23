@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#2d5016" />
+    <title>OK 시스템</title>
+    <!-- 홈 화면에 추가했을 때의 이름·아이콘. 코드는 캐시하지 않는다(sw.js 참고). -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="OK 시스템" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="stylesheet" href="/assets/tokens.css" />
+    <link rel="stylesheet" href="/assets/m.css" />
+  </head>
+  <body class="mbody">
+    <!--
+      봉사자 폰 화면. index.html 과 다른 페이지다.
+
+      index.html 은 열리자마자 PC 화면 모듈을 열다섯 개 불러오고 API 를 예닐곱 개 부른다.
+      봉사자에게는 그 중 아무것도 필요 없고 전부 403 이 난다.
+      폰의 느린 회선에서 쓰지도 않을 코드를 받을 이유가 없어 따로 둔다.
+      (로그인 화면을 뗀 것과 같은 판단)
+    -->
+    <header class="mbar">
+      <button type="button" class="mbar__back" id="m-back" hidden>‹ 뒤로</button>
+      <h1 class="mbar__title" id="m-title">일정</h1>
+      <!--
+        누구·어떤 역할인지 — 모든 탭이 같은 모양. 첫 글자 원 + 이름 + 역할 알약.
+        겸직자만 옆에 전환 아이콘(어느 탭에서든 바꾼다).
+      -->
+      <span class="mbar__who" id="m-who-box">
+        <span class="mbar__initial" id="m-initial" aria-hidden="true"></span>
+        <span class="mbar__name" id="m-who"></span>
+        <span class="mbar__role" id="m-role-tag" hidden></span>
+        <button type="button" class="mbar__switch" id="m-switch" aria-label="역할 전환" hidden>
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 0 1-13.7 5.6"/><path d="M4 12a8 8 0 0 1 13.7-5.6"/><polyline points="18 2 18 7 13 7"/><polyline points="6 22 6 17 11 17"/></svg>
+        </button>
+      </span>
+    </header>
+
+    <!--
+      역할 고르기 — 겸직(봉사자이면서 멘토)인 사람만 본다.
+      로그인 뒤 처음 한 번, 그리고 [나] 의 [전환] 에서. 고른 역할은 서버 세션에 적힌다.
+      역할이 하나인 사람에게는 절대 뜨지 않는다.
+    -->
+    <div class="mrole" id="m-role" hidden>
+      <div class="mrole__panel" role="dialog" aria-modal="true" aria-labelledby="m-role-title">
+        <h2 class="mrole__title" id="m-role-title">오늘은 어떤 활동인가요?</h2>
+        <p class="mrole__hint">고른 역할로 일정·일지가 남습니다. [나]에서 언제든 바꿀 수 있어요.</p>
+        <div class="mrole__choices" id="m-role-choices"></div>
+        <p class="mrole__error" id="m-role-error" hidden></p>
+      </div>
+    </div>
+
+    <!-- 환영 — 로그인 뒤 한 번(m/welcome.js). 할 일이 있으면 그 아래에 버튼 -->
+    <div class="mrole" id="m-welcome" hidden>
+      <div class="mrole__panel" role="dialog" aria-modal="true" aria-labelledby="m-welcome-title">
+        <h2 class="mrole__title" id="m-welcome-title"></h2>
+        <div class="mwelcome__todo" id="m-welcome-todo" hidden></div>
+        <button type="button" class="mbtn mbtn--primary mbtn--wide" id="m-welcome-start">시작</button>
+      </div>
+    </div>
+
+    <main class="mmain" id="m-main">
+      <!--
+        일정 — 달력 하나로 본다.
+
+        "내가 언제 가지" 와 "그날 누가 오지" 가 같은 화면에서 답이 나와야 한다.
+        목록을 따로 두면 같은 것을 두 군데서 읽게 되고, 둘이 어긋나는 날이 온다.
+      -->
+      <section class="mview" id="mview-schedule" hidden>
+        <div class="mstale" id="sched-stale" hidden></div>
+
+        <!-- 월 이동 — 글자와 화살표만. 달 이름을 누르면 달 고르기 -->
+        <div class="mcal__bar" id="cal-bar">
+          <button type="button" class="mcal__nav" id="cal-prev" aria-label="지난달">‹</button>
+          <button type="button" class="mmonthbtn" id="cal-month-btn" aria-haspopup="dialog">
+            <span id="cal-month"></span><span class="mmonthbtn__caret" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg></span>
+          </button>
+          <button type="button" class="mcal__nav" id="cal-next" aria-label="다음달">›</button>
+        </div>
+
+        <div class="mcal">
+
+          <!-- 켜면 달력도 아래 목록도 내 것만 남는다 -->
+          <button type="button" class="mtoggle" id="cal-mine" aria-pressed="false">
+            내 일정만
+          </button>
+
+          <!-- 역할 거르기(m/role_chips.js). 서버는 한 달 전체를 주고 화면이 거른다 -->
+          <div id="cal-role"></div>
+          <p class="mcal__legend" aria-hidden="true">
+            <span class="mcal__dot"></span>봉사자
+            <span class="mcal__dot mcal__dot--mentor"></span>멘토
+            <span class="mcal__dot mcal__dot--mine"></span>나
+          </p>
+
+          <div class="mcal__week" aria-hidden="true">
+            <span>일</span><span>월</span><span>화</span><span>수</span>
+            <span>목</span><span>금</span><span>토</span>
+          </div>
+          <div class="mcal__grid" id="cal-grid"></div>
+        </div>
+
+        <div class="mtop">
+          <h2 class="mhead" id="day-title"></h2>
+          <button type="button" class="mbtn mbtn--primary mbtn--small" id="day-add">
+            + 일정 넣기
+          </button>
+        </div>
+        <ul class="mlist" id="day-list"></ul>
+        <p class="mempty" id="day-empty" hidden>그날은 오는 사람이 없습니다.</p>
+      </section>
+
+      <!--
+        일지 — 내 일지와 반기 관찰이 한 탭에 있다.
+
+        맨 위는 반기 관찰로 가는 배너 하나. 일지 목록과 섞이지 않게 띄워 둔다 —
+        하는 일이 다르고(아이별 · 반기에 한 번), 들어가면 다른 화면이 열린다.
+      -->
+      <section class="mview" id="mview-journal" hidden>
+        <!-- 반기별 관찰 숨김(2026-09-17, 데이터 보존) — 되살릴 때 hidden 을 빼고 m/app.js·m/journal.js 입구도 되살린다 -->
+        <button type="button" class="mbanner" id="observe-open" hidden>
+          <span class="mbanner__body">
+            <span class="mbanner__title">반기별 관찰</span>
+            <span class="mbanner__sub" id="observe-count">불러오는 중…</span>
+          </span>
+          <span class="mbanner__go" aria-hidden="true">›</span>
+        </button>
+
+        <div class="mtop">
+          <h2 class="mhead">봉사일지</h2>
+          <button type="button" class="mbtn mbtn--primary mbtn--small" id="journal-add">
+            + 일지 쓰기
+          </button>
+        </div>
+        <div class="mstale" id="journal-stale" hidden></div>
+
+        <!-- 월 이동 — 달 이름(📅)을 누르면 달·날짜 고르기. 날짜를 고르면 "9월 2일" + [×] -->
+        <div class="mcal__bar" id="journal-bar">
+          <button type="button" class="mcal__nav" id="journal-prev" aria-label="지난달">‹</button>
+          <button type="button" class="mmonthbtn" id="journal-month-btn" aria-haspopup="dialog">
+            <span id="journal-month"></span><span class="mmonthbtn__caret" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg></span>
+          </button>
+          <button type="button" class="mmonthbtn__clear" id="journal-day-clear" aria-label="날짜 풀기" hidden>×</button>
+          <button type="button" class="mcal__nav" id="journal-next" aria-label="다음달">›</button>
+        </div>
+
+        <!-- 일정은 있는데 일지가 없는 날. 없으면 이 덩어리째 안 보인다. -->
+        <div id="undone-box" hidden>
+          <h3 class="mhead">안 쓴 일지</h3>
+          <ul class="mlist" id="undone-list"></ul>
+        </div>
+
+        <!-- 센터가 '본인' 으로 좁혀 두면 이 전환 자체가 안 보인다 -->
+        <div class="mseg" id="journal-seg" hidden>
+          <button type="button" class="mseg__item is-on" data-scope="all">전체 보기</button>
+          <button type="button" class="mseg__item" data-scope="mine">내 일지</button>
+        </div>
+
+        <!-- 지난해 달을 [전체 보기] 로 볼 때만 — 남의 일지는 올해 것만 온다 -->
+        <p class="mnote" id="journal-scope" hidden></p>
+
+        <ul class="mlist" id="journal-list"></ul>
+        <!-- 목록은 15건씩. 이 줄이 화면에 들어오면 다음 쪽을 받는다. -->
+        <p class="mmore" id="journal-more" hidden>불러오는 중…</p>
+        <p class="mempty" id="journal-empty" hidden>이 기간에 쓴 일지가 없습니다.</p>
+      </section>
+
+      <!--
+        반기 관찰 — 탭이 아니다. 일지 탭에서 들어와 [뒤로] 로 나간다.
+        탭을 하나 더 두면 넷이 되고, 봉사자가 여는 횟수에 비해 자리를 많이 먹는다.
+      -->
+      <section class="mview" id="mview-observe" hidden>
+        <!-- 상·하반기 둘 다 보인다. 닫힌 반기는 읽기만 된다. -->
+        <div class="mseg" id="observe-halves"></div>
+        <p class="mnote" id="observe-note"></p>
+        <div class="mclosed" id="observe-closed" hidden>
+          이 반기는 마감되었습니다. 쓴 글은 읽을 수 있고, 고치거나 새로 쓸 수는 없습니다.
+        </div>
+        <ul class="mlist" id="observe-list"></ul>
+        <p class="mempty" id="observe-empty" hidden>재원 중인 아동이 없습니다.</p>
+      </section>
+
+      <!-- 나 — 통계·문의·로그아웃 -->
+      <!--
+        누가·어떤 역할인지는 위 초록 줄에 있다. 본문은 카드 셋 —
+        봉사 기록 / 문의 / 앱(업데이트·로그아웃 — 되돌리기 어려운 것이라 맨 아래).
+      -->
+      <section class="mview" id="mview-me" hidden>
+        <h2 class="msec__title">봉사 기록</h2>
+        <section class="msec" aria-label="봉사 기록">
+          <div class="mstale" id="stats-stale" hidden></div>
+          <div class="msum" id="stats-total"></div>
+          <ul class="mmonths" id="stats-months"></ul>
+        </section>
+
+        <h2 class="msec__title">문의</h2>
+        <section class="msec" aria-label="문의">
+          <button type="button" class="mbtn mbtn--primary mbtn--wide" id="inquiry-add">
+            + 문의하기
+          </button>
+          <ul class="mlist msec__list" id="inquiry-list"></ul>
+          <p class="mempty" id="inquiry-empty" hidden>보낸 문의가 없습니다.</p>
+        </section>
+
+        <h2 class="msec__title">앱</h2>
+        <section class="msec msec--app" aria-label="앱">
+          <!--
+            [업데이트] — 화면이 옛것 같을 때 누르는 자리.
+            홈 화면 앱에는 주소창도 새로고침도 없다. 이 버튼이 그 역할을 한다.
+          -->
+          <button type="button" class="mbtn mbtn--wide" id="me-update">업데이트</button>
+          <button type="button" class="mbtn mbtn--wide mbtn--quiet-danger" id="me-logout">로그아웃</button>
+          <p class="mnote mnote--center" id="me-version"></p>
+        </section>
+      </section>
+
+      <div class="mstate" id="m-state" hidden></div>
+    </main>
+
+    <!--
+      하단 탭. 폰은 한 손으로 들고 엄지가 닿는 곳은 아래쪽이라 이동은 아래에 둔다.
+      셋이다 — 봉사자가 폰에서 하는 일이 "언제 가나 / 무엇을 적나 / 내 것" 셋이라서다.
+      관찰은 일지 안으로, 통계는 나 안으로 들어갔다.
+    -->
+    <nav class="mtabs" id="m-tabs" aria-label="화면 이동">
+      <button type="button" class="mtab" data-tab="schedule">일정</button>
+      <button type="button" class="mtab" data-tab="journal">일지</button>
+      <button type="button" class="mtab" data-tab="me">나</button>
+    </nav>
+
+    <div class="snackbar" id="snackbar" role="status" aria-live="polite" hidden></div>
+
+    <script type="module" src="/assets/m/app.js"></script>
+  </body>
+</html>

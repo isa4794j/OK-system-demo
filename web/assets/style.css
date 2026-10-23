@@ -1,0 +1,6788 @@
+/* =========================================================
+   OK 시스템 — 공통 스타일
+
+   디자인 기준
+   - 포인트 색은 녹색(#2d5016) 하나. 나머지는 회색 계열.
+   - 여백은 8의 배수(--s1 = 8px)만 사용.
+   - 본문 최소 14px, 읽는 문단은 한 줄 40~60자.
+   - 상태색은 빨강(삭제/오류)만 예외로 둔다.
+   ========================================================= */
+
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: "Noto Sans KR", "Pretendard", system-ui, "Malgun Gothic", sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text);
+  background: var(--surface-sunken);
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+/*
+ * 입력칸 글자는 어디서나 16px 이상. 이 한 곳에서만 정한다 — 화면마다 줄이지 않는다.
+ * iOS 는 16px 보다 작은 칸을 누르면 화면을 확대하고, 확대된 채로 남는다.
+ * 확대를 막으려고 viewport 에 user-scalable=no 를 거는 것은 하지 않는다(확대가 필요한 사람이 있다).
+ */
+input,
+select,
+textarea {
+  font-size: 16px;
+}
+
+/*
+ * 위 규칙은 요소 선택자라 약하다. 칸마다 클래스에서 `font: inherit` 를 쓰면 글자 크기까지 부모 것으로
+ * 덮인다(도서 표 머리의 거르기 칸이 12px 가 된 까닭 — 1차 전수 점검). 확대가 일어나는 화면(좁은 화면·터치)에서는
+ * 어떤 클래스가 덮어도 16px 아래로 내려가지 않게 규칙 쪽에서 막는다.
+ */
+@media (max-width: 720px), (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    font-size: max(16px, 1em) !important;
+  }
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+}
+
+/* ---------- 전체 레이아웃 ---------- */
+
+.app {
+  display: grid;
+  /* 앱바 · 본문(레일 + 서브탭 + 화면). 노치가 있는 폰은 앱바가 그만큼 내려온다(/m 과 같은 방식) */
+  grid-template-rows: calc(var(--appbar-h) + env(safe-area-inset-top)) 1fr;
+  height: 100%;
+}
+
+.app__body {
+  display: grid;
+  grid-template-columns: var(--rail-w) var(--subnav-w) 1fr;
+  min-height: 0;
+}
+
+/* ---------- 상단 앱바 ---------- */
+
+.appbar {
+  display: flex;
+  align-items: center;
+  padding: 0 var(--s3);
+  padding-top: env(safe-area-inset-top);
+  background: var(--green);
+  color: #fff;
+}
+
+.appbar__title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+/* ---------- 왼쪽 아이콘 레일 (좁은 화면에서는 아래 탭바) ---------- */
+
+.rail {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: var(--s2) 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+}
+
+.rail__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+}
+
+.rail__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  padding: var(--s1) 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  color: var(--text-muted);
+}
+
+/* 등급에 따라 감춘 메인 메뉴(me.js) — display 를 준 클래스라 [hidden] 을 따로 받는다 */
+.rail__item[hidden] {
+  display: none;
+}
+
+.rail__item:disabled {
+  /* 서브탭의 비활성 항목과 같은 규칙을 쓴다 */
+  color: var(--text-disabled);
+  cursor: not-allowed;
+}
+
+.rail__icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 32px;
+  border-radius: 16px;
+  font-size: 18px;
+  line-height: 1;
+  transition: background-color 0.12s ease;
+}
+
+@media (hover: hover) {
+  .rail__item:not(:disabled):hover .rail__icon {
+    background: var(--surface-sunken);
+  }
+}
+
+.rail__item.is-active {
+  color: var(--green);
+  font-weight: 500;
+}
+
+.rail__item.is-active .rail__icon {
+  background: var(--green-surface);
+}
+
+.rail__label {
+  font-size: 12px;
+}
+
+/* ---------- 서브탭 패널 ---------- */
+
+.subnav {
+  padding: var(--s3) var(--s2);
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+}
+
+.subnav__heading {
+  margin: 0 0 var(--s2) var(--s1);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--text-faint);
+}
+
+.subnav__list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.subnav__item {
+  width: 100%;
+  padding: var(--s1) var(--s2);
+  text-align: left;
+  background: none;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  color: var(--text-muted);
+}
+
+@media (hover: hover) {
+  .subnav__item:not(:disabled):hover {
+    background: var(--surface-sunken);
+  }
+}
+
+/* 아직 작동하지 않는 항목 — 흐리게 두되 읽을 수는 있어야 한다.
+   opacity로 통째로 지우면 글자가 배경에 묻혀 무슨 메뉴인지 안 보이므로
+   색만 한 단계 내린다. */
+.subnav__item:disabled {
+  color: var(--text-disabled);
+  cursor: not-allowed;
+}
+
+/* 지금 보고 있는 항목만 또렷하게 */
+.subnav__item.is-active {
+  background: var(--green-surface);
+  color: var(--green);
+  font-weight: 700;
+}
+
+/* 종사자 아래 펼쳐지는 일지 3종 */
+.subnav__sub {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 4px 0 4px var(--s2);
+  padding: 0;
+  list-style: none;
+  /* 상위 항목에 딸린 목록이라는 걸 선 하나로만 알린다 */
+  border-left: 1px solid var(--border);
+}
+
+.subnav__item--sub {
+  padding-left: var(--s2);
+  font-size: 13px;
+}
+
+/* ---------- 메인 영역 ---------- */
+
+.main {
+  min-width: 0;
+  padding: var(--s3);
+  overflow-y: auto;
+}
+
+/* 본문 최대폭 — 넓은 화면에서 한 줄이 너무 길어지지 않게 한다.
+   메인 영역 안의 모든 화면이 이 안에 들어가므로,
+   화면을 새로 만들 때 따로 폭을 지정할 필요가 없다.
+   폭은 규정대로 좁게(880px — 1280 창의 본문 칸 약 930px 안에 들어가, 1280·1920 에서 폭이 같다),
+   위치만 가운데. 넓은 창에서는 좌우 여백만 늘어난다(③단계 후속 — 1160px 로 넓혔던 것을 되돌림). */
+.main__inner {
+  max-width: 880px;
+  margin-inline: auto;
+}
+
+.view__head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s2);
+  margin-bottom: var(--s3);
+}
+
+.view__title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.view__count {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.muted {
+  /* 읽는 문단은 한 줄 40~60자로 묶는다 */
+  max-width: 48ch;
+  color: var(--text-muted);
+}
+
+/* ---------- 툴바 (필터 + 검색) ---------- */
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s2);
+  margin-bottom: var(--s2);
+}
+
+.chips {
+  display: flex;
+  gap: var(--s1);
+}
+
+.chip {
+  padding: 6px var(--s2);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: background-color 0.12s ease, border-color 0.12s ease;
+}
+
+.chip:hover {
+  background: var(--surface-sunken);
+}
+
+.chip.is-selected {
+  background: var(--green-surface);
+  border-color: var(--green);
+  color: var(--green);
+  font-weight: 500;
+}
+
+/* 검색과 버튼처럼 툴바 오른쪽에 나란히 놓는 것들 */
+.toolbar__right {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s1);
+}
+
+/* 명단의 이름은 표에서 가장 또렷한 요소 (아동 명단과 같은 기준) */
+.staff__name {
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.search__input {
+  width: 240px;
+  padding: 8px var(--s2);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+}
+
+.search__input::placeholder {
+  color: var(--text-faint);
+}
+
+.search__input:focus {
+  border-color: var(--green);
+  outline: none;
+  box-shadow: 0 0 0 2px var(--green-surface);
+}
+
+/* ---------- 카드 ---------- */
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+/*
+ * 표를 담는 칸. 표가 화면보다 넓으면 이 칸 안에서만 옆으로 민다 —
+ * 화면 전체가 옆으로 밀리면 안 된다. 카드와 함께 쓰면 카드의 모서리 자르기는 그대로다.
+ */
+.table-scroll,
+.card.table-scroll {
+  /* 표 안의 화면낭독기용 글자(.visually-hidden, absolute)가 이 칸을 벗어나 화면을 넓히지 않게 */
+  position: relative;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.card--pad {
+  padding: var(--s3);
+}
+
+/* ---------- 표 ---------- */
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* 표 머리 — 이름이 주인공이 되도록 뒤로 물린다.
+   회색 배경까지 깔면 머리가 다시 앞으로 나오므로 배경은 두지 않고
+   작은 글자 + 옅은 회색 + 아래 구분선만으로 역할을 표시한다. */
+.table__th {
+  padding: var(--s1) var(--s2);
+  text-align: left;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--text-faint);
+  background: none;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.table td {
+  padding: var(--s2);
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+/* 학년·성별은 이름을 받쳐주는 정보라 한 단계 눌러둔다 */
+.table td:nth-child(2),
+.table td:nth-child(3) {
+  color: var(--text-muted);
+}
+
+.table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+/* 명단 순번 "1." — 이름 앞, 흐리게·자릿수 맞춤(roster_more.js rosterNumber) */
+.roster__no {
+  display: inline-block;
+  min-width: 2.2em;
+  margin-right: 4px;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* 이름 — 표에서 가장 또렷한 요소 */
+.namebtn {
+  padding: 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  color: var(--green);
+  font-size: 15px;
+  font-weight: 500;
+  text-align: left;
+  border-radius: 4px;
+  text-decoration: underline;
+  /* 평소에는 밑줄을 거의 보이지 않게 깔아두고 호버에서 진해지게 한다.
+     밑줄이 생겼다 없어지면 글자가 흔들려 보이기 때문. */
+  text-decoration-color: transparent;
+  text-underline-offset: 3px;
+  transition: color 0.12s ease, text-decoration-color 0.12s ease;
+}
+
+/* 호버 반응은 마우스가 있는 환경에서만.
+   터치 기기에서는 탭한 뒤 호버 상태가 남아 눌린 것처럼 보인다. */
+@media (hover: hover) {
+  .table tbody tr:hover {
+    background: var(--surface-sunken);
+  }
+
+  /* 행 어디에 올려도 이름이 반응해 "이 줄은 누를 수 있다"를 알린다 */
+  .table tbody tr:hover .namebtn,
+  .namebtn:hover {
+    color: var(--green-hover);
+    text-decoration-color: currentColor;
+  }
+}
+
+/* 상태 배지 — 색을 늘리지 않고 회색/녹색 두 가지로만 구분한다 */
+.badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 1.6;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-strong);
+  color: var(--text-muted);
+}
+
+.badge--active {
+  background: var(--green-surface);
+  border-color: var(--green);
+  color: var(--green);
+}
+
+/* ---------- 상태 표시 (로딩/비어있음/오류) ---------- */
+
+.state {
+  padding: var(--s5) var(--s3);
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.state--error {
+  color: var(--danger);
+}
+
+.state__hint {
+  margin: var(--s1) 0 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* ---------- 상세 화면 ---------- */
+
+.back {
+  margin-bottom: var(--s2);
+  padding: 6px var(--s2);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  cursor: pointer;
+  color: var(--text-muted);
+}
+
+.back:hover {
+  background: var(--surface-sunken);
+}
+
+/* ---------- 아동 상세: 머리 ---------- */
+
+.detail__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--s2);
+  margin-bottom: var(--s3);
+}
+
+.detail__who {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.detail__meta {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.period {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s1);
+}
+
+/* ---------- 카드 묶음 ----------
+   카드끼리는 선이 아니라 여백으로 구분한다. */
+
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
+.card__title {
+  margin: 0 0 var(--s2);
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.card__body {
+  margin: 0;
+  max-width: 48ch;
+  color: var(--text-muted);
+}
+
+.card__body strong {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.placeholder {
+  margin: 0;
+  max-width: 48ch;
+  color: var(--text-faint);
+}
+
+/* ---------- 영역별 관찰 ---------- */
+
+.areas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: var(--s1);
+}
+
+.area {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s1);
+  padding: var(--s1) var(--s2);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.area__name {
+  font-size: 13px;
+  color: var(--text-muted);
+  /* 한글 낱말 중간에서 끊지 않는다("건강상의 유의 / 점" 처럼 갈리던 것) */
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.area__count {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* 건수가 있는 영역만 녹색으로 살린다 */
+.area.has-count {
+  background: var(--green-surface);
+  border-color: var(--green);
+}
+
+.area.has-count .area__name,
+.area.has-count .area__count {
+  color: var(--green);
+}
+
+/* 영역 미지정 — 처리해야 할 항목이라 노란색으로 눈에 띄게 (상태색 예외) */
+.area--unset.has-count {
+  background: var(--warn-surface);
+  border-color: var(--warn);
+}
+
+.area--unset.has-count .area__name,
+.area--unset.has-count .area__count {
+  color: var(--warn-text);
+}
+
+/* ---------- 날짜별 관찰 ---------- */
+
+.obs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.obs__item {
+  display: grid;
+  grid-template-columns: 88px 1fr;
+  gap: var(--s2);
+  padding-top: var(--s2);
+  border-top: 1px solid var(--border);
+}
+
+.obs__item:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.obs__date {
+  font-size: 13px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.obs__main {
+  min-width: 0;
+}
+
+.obs__tags {
+  display: flex;
+  flex-wrap: wrap;
+  /* 영역 고르기 칸이 손끝 크기로 커져도 옆 태그가 같이 늘어나지 않게 */
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.tag {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 1.6;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-strong);
+  color: var(--text-muted);
+}
+
+.tag--area {
+  background: var(--green-surface);
+  border-color: var(--green);
+  color: var(--green);
+}
+
+/* 근거 일지가 수정된 관찰. 확인이 필요하다는 뜻이라 미지정과 같은 톤을 쓴다. */
+.tag--stale {
+  background: var(--warn-surface);
+  border-color: var(--warn);
+  color: var(--warn-text);
+}
+
+/* 근거 일지가 사라진 관찰. 되돌릴 수 없는 일이라 빨강을 쓴다(상태색 예외).
+   채우지 않고 테두리만 둬서, 목록을 훑을 때 과하게 튀지 않게 한다. */
+.tag--gone {
+  background: var(--surface);
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+/* 영역 미지정 표시 (상태색 예외) */
+.tag--unset {
+  background: var(--warn-surface);
+  border-color: var(--warn);
+  color: var(--warn-text);
+}
+
+.obs__content {
+  margin: 0;
+  max-width: var(--reading);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- 버튼 ---------- */
+
+.btn {
+  padding: 6px var(--s2);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  cursor: pointer;
+  color: var(--text-muted);
+  white-space: nowrap;
+  transition: background-color 0.12s ease, border-color 0.12s ease;
+}
+
+.btn:hover {
+  background: var(--surface-sunken);
+}
+
+.btn--primary {
+  background: var(--green);
+  border-color: var(--green);
+  color: #fff;
+  font-weight: 500;
+}
+
+.btn--primary:hover {
+  background: var(--green-hover);
+  border-color: var(--green-hover);
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  color: var(--text-disabled);
+}
+
+.btn--primary:disabled {
+  background: var(--border-strong);
+  border-color: var(--border-strong);
+  color: var(--surface);
+}
+
+/* 되돌릴 수 없는 동작. 빨강은 여기와 오류에만 쓴다. */
+.btn--danger {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+  font-weight: 500;
+}
+
+.btn--danger:hover {
+  /* 조금 더 짙게. 누르기 전에 한 번 더 눈에 들어오게 한다. */
+  background: #8f1e17;
+  border-color: #8f1e17;
+}
+
+/* 글자만 있는 보조 동작 (수정 / 나누기) */
+.linkbtn {
+  padding: 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 13px;
+  border-radius: 4px;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 3px;
+  transition: color 0.12s ease, text-decoration-color 0.12s ease;
+}
+
+@media (hover: hover) {
+  .linkbtn:hover {
+    color: var(--green);
+    text-decoration-color: currentColor;
+  }
+
+  /* 삭제는 녹색으로 반응하면 안 된다. 되돌릴 수 없는 쪽임을 색으로도 알린다. */
+  .linkbtn--danger:hover {
+    color: var(--danger);
+  }
+}
+
+/* 평소에는 다른 보조 동작과 같은 회색이다.
+   목록에 빨간 글자가 줄마다 있으면 눈이 피로하고, 정작 위험한 순간에 안 보인다. */
+.linkbtn--danger:focus-visible {
+  outline-color: var(--danger);
+}
+
+/* ---------- 입력 ---------- */
+
+.input {
+  padding: 6px var(--s1);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+}
+
+.input:focus {
+  border-color: var(--green);
+  outline: none;
+  box-shadow: 0 0 0 2px var(--green-surface);
+}
+
+.textarea {
+  width: 100%;
+  /* 관찰 내용은 읽는 글이라 한 줄이 너무 길어지지 않게 묶는다 */
+  max-width: var(--reading);
+  padding: var(--s1);
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+}
+
+.field__label {
+  font-size: 12px;
+  color: var(--text-faint);
+}
+
+/* ---------- 폼 (추가 / 수정 / 나누기) ---------- */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  margin-bottom: var(--s3);
+  padding: var(--s2);
+  /* 글을 쓰는 상자라 본문과 같은 기준(한 줄 40~60자)으로 폭을 묶는다.
+     이렇게 해야 제목·내용·안내문의 왼쪽 끝과 오른쪽 끝이 모두 같아진다.
+     묶지 않으면 제목만 화면 끝까지 늘어나고 내용은 60ch에서 멈춘다. */
+  max-width: 60ch;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+/* 폼 안의 칸은 폭에 꽉 차게 — 제목과 내용의 폭이 어긋나지 않도록 */
+.form .field,
+.form .field .input {
+  width: 100%;
+}
+
+/* .textarea 자체의 60ch 상한은 폼 밖에서 홀로 쓰일 때를 위한 것이다.
+   폼 안에서는 폼이 이미 폭을 묶고 있어, 이 상한이 남으면
+   내용 칸만 제목보다 몇 px 짧아진다. */
+.form .field .textarea {
+  max-width: none;
+}
+
+/* 한 줄에 나란히 놓는 칸(날짜·작성자 등)만 제 크기대로 둔다 */
+.form__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+}
+
+.form__row .field {
+  width: auto;
+}
+
+/* 좁은 칸이 글자에 눌려 찌그러지지 않게 */
+.form__row .input {
+  min-width: 120px;
+}
+
+/* 화면 하나를 통째로 쓰는 폼 (일지 작성/수정).
+   목록 안에 끼어 있던 때와 달리 좁힐 이유가 없다.
+   본문 최대폭(.main__inner = 880px)까지 넓게 쓰고,
+   회색 상자 대신 카드처럼 흰 배경을 준다. */
+.form--page {
+  max-width: none;
+  padding: var(--s3);
+  background: var(--surface);
+  border-radius: var(--radius);
+}
+
+.form--page .notice {
+  max-width: none;
+}
+
+.form--page .form__row .input {
+  min-width: 160px;
+}
+
+/* 실제 일지를 쓰는 칸이라 넉넉하게 */
+.form--page .textarea {
+  min-height: 320px;
+}
+
+/* 날짜·작성자는 이미 정해진 값이라 수정 화면에서는 잠근다 */
+.input:disabled {
+  background: var(--surface-sunken);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+/* 한 줄짜리 입력은 높이를 맞춘다.
+   날짜 칸은 브라우저가 달력 아이콘을 넣어 혼자 더 높아진다. */
+.form .input:not(textarea) {
+  min-height: 38px;
+}
+
+.form__actions {
+  display: flex;
+  gap: var(--s1);
+}
+
+.form__hint {
+  margin: 0;
+  max-width: 48ch;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* ---------- 영역별 관찰 펼쳐보기 (읽기 전용) ---------- */
+
+.areaviews {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+
+/* 타일 바로 아래에 이어지므로 위쪽으로 한 칸 띄운다 */
+.areaviews:not(:empty) {
+  margin-top: var(--s3);
+}
+
+.areaview__head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s1);
+  margin-bottom: var(--s1);
+  padding-bottom: var(--s1);
+  border-bottom: 1px solid var(--border);
+}
+
+.areaview__name {
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.areaview__count {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.areaview__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* 보기 화면이라 편집 요소가 없다. 날짜와 글만. */
+.areaview__item {
+  display: grid;
+  grid-template-columns: 88px 1fr;
+  gap: var(--s2);
+}
+
+.areaview__date {
+  font-size: 13px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.areaview__content {
+  margin: 0;
+  max-width: var(--reading);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- 연간 평가 ---------- */
+
+.evalareas {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+
+.evalareas:not(:empty) {
+  margin-top: var(--s2);
+}
+
+.evalarea__head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s1);
+  margin-bottom: var(--s1);
+}
+
+.evalarea__name {
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.evalarea__count {
+  font-size: 13px;
+  color: var(--text-faint);
+}
+
+/* 근거 보기는 보조 동작이라 오른쪽 끝으로 민다 */
+.evalarea__evidence {
+  margin-left: auto;
+}
+
+/* 10차 — 읽기 폭 제한 없이 카드 폭을 다 쓴다(편집 칸도 같은 폭) */
+.evalarea__text {
+  margin: 0;
+  max-width: none;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* 근거로 쓰인 관찰 원문. 평가문과 구분되게 눌러 둔다. */
+.evidence {
+  margin-top: var(--s1);
+  padding: var(--s2);
+  background: var(--surface-sunken);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+}
+
+/* ---------- 달력 (스케줄) ---------- */
+
+.calendar {
+  display: grid;
+  /* minmax(0, …) — 칸이 이름 글자 폭보다 좁아질 수 있게(768px 에서 토요일 칸이 잘리던 것). 이름은 말줄임 */
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 1px;
+  /* 칸 사이를 선으로 나누는 대신 배경을 비쳐 보이게 한다.
+     테두리를 칸마다 두면 겹쳐서 두꺼워진다. */
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.calendar__weekday {
+  padding: var(--s1);
+  text-align: center;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-faint);
+  background: var(--surface-sunken);
+}
+
+.calendar__cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 88px;
+  padding: var(--s1);
+  text-align: left;
+  background: var(--surface);
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.calendar__cell--blank {
+  background: var(--surface-sunken);
+  cursor: default;
+}
+
+@media (hover: hover) {
+  .calendar__cell:not(.calendar__cell--blank):hover {
+    background: var(--surface-sunken);
+  }
+}
+
+.calendar__cell.is-selected {
+  background: var(--green-surface);
+  box-shadow: inset 0 0 0 2px var(--green);
+}
+
+.calendar__day {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* 일요일만 눌러 둔다. 공휴일까지 다루지는 않는다. */
+.calendar__day--sun {
+  color: var(--danger);
+}
+
+.calendar__chips {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.calendar__cell {
+  min-width: 0;
+}
+
+.calendar__more {
+  font-size: 11px;
+  color: var(--text-faint);
+}
+
+/*
+ * 사람 이름은 색 점 + 글자. 알약으로 감싸지 않는다.
+ * 역할(.roletag)이 알약이라, 이름까지 알약이면 둘이 같은 것으로 보인다.
+ * 달력·통계·일지 카드에서 모두 이 규칙을 쓴다.
+ */
+.personchip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 달력 칸은 좁아 글자를 한 단계 줄인다 */
+.calendar__chips .personchip {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/*
+ * 역할(멘토/봉사자/센터장/생활복지사). 이름보다 작고 흐리게, 이름 옆에 붙는다.
+ * .tag 와 달리 테두리가 없다 — 상태를 알리는 태그와 구분한다.
+ */
+.roletag {
+  flex: 0 0 auto;
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+
+.personchip__dot {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--person);
+}
+
+/* 여섯 가지면 한 화면에서 헷갈리지 않는다. 톤은 낮춰 녹색을 가리지 않게. */
+.personchip--0 {
+  --person: #4a7c59;
+}
+
+.personchip--1 {
+  --person: #4a6d8c;
+}
+
+.personchip--2 {
+  --person: #8c6d4a;
+}
+
+.personchip--3 {
+  --person: #7a4a8c;
+}
+
+.personchip--4 {
+  --person: #8c4a5e;
+}
+
+.personchip--5 {
+  --person: #4a8c8c;
+}
+
+/* ---------- 그날 일정 ---------- */
+
+.dayplan {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+}
+
+.dayplan__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s2);
+  padding: var(--s1) var(--s2);
+  background: var(--surface-sunken);
+  border-radius: var(--radius-sm);
+}
+
+.dayplan__time {
+  font-variant-numeric: tabular-nums;
+}
+
+.dayplan__actions {
+  display: flex;
+  gap: var(--s2);
+  margin-left: auto;
+}
+
+/* ---------- 요일 고르기 ---------- */
+
+.weekday {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px var(--s1);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.weekday input {
+  accent-color: var(--green);
+  cursor: inherit;
+}
+
+@media (max-width: 720px) {
+  .calendar__cell {
+    min-height: 64px;
+  }
+}
+
+/* ---------- 모달 ---------- */
+
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: var(--s3);
+}
+
+/* 뒤 화면을 어둡게 덮는다. 누르면 닫힌다. */
+.modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgb(0 0 0 / 0.4);
+}
+
+.modal__dialog {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  width: 100%;
+  max-width: 860px;
+  max-height: 100%;
+  padding: var(--s3);
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 32px rgb(0 0 0 / 0.25);
+  overflow-y: auto;
+}
+
+.modal__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s2);
+}
+
+.modal__head .card__title {
+  margin: 0;
+}
+
+.modal__actions {
+  display: flex;
+  gap: var(--s1);
+}
+
+/* 묻기만 하는 창은 좁아도 된다 */
+.modal__dialog--narrow {
+  max-width: 480px;
+}
+
+/* ---------- 확인창 (삭제·되돌릴 수 없는 일) ---------- */
+
+/* 400px 안팎, 여백 24px. 제목 → 대상 → 경고 → 버튼 순서다. */
+.modal__dialog--confirm {
+  max-width: 400px;
+  padding: var(--s3);
+  gap: var(--s1);
+}
+
+.confirm__title {
+  margin: 0 0 var(--s1);
+  font-size: 17px;
+  font-weight: 700;
+}
+
+/* 무엇을 지우는지 한 줄. 조금 강조. */
+.confirm__target {
+  margin: 0;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+/* 경고. 작고 흐리게, 앞에 작은 표시 하나. */
+.confirm__message {
+  margin: 0;
+  max-width: var(--reading);
+  padding-left: 1.4em;
+  position: relative;
+  font-size: 13px;
+  line-height: 1.5;
+  /* 줄바꿈으로 문단을 나눠 쓰므로 그대로 살린다 */
+  white-space: pre-wrap;
+  color: var(--text-muted);
+}
+
+.confirm__message::before {
+  content: "⚠";
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-size: 12px;
+  color: var(--warn);
+}
+
+/* 이름을 쳐야 하는 창의 입력칸 — 경고와 버튼 사이에 숨 쉴 틈 */
+.modal__dialog--confirm .field {
+  margin-top: var(--s1);
+}
+
+/* 확인창 버튼은 오른쪽. [취소] [삭제] 순서, 사이 8px */
+.modal__actions--end {
+  justify-content: flex-end;
+  margin-top: var(--s2);
+}
+
+/* ---------- 일지에서 가져오기 ---------- */
+
+.card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s1);
+}
+
+.importlist {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+/* 줄 전체가 체크박스의 라벨이라 어디를 눌러도 선택된다 */
+.importrow {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s2);
+  padding: var(--s1) var(--s2);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.importrow:hover {
+  border-color: var(--border-strong);
+}
+
+/* 이미 가져온 줄 — 남겨서 보여주되 고를 수는 없다 */
+.importrow.is-imported {
+  background: var(--surface-sunken);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.importrow__check {
+  margin-top: 6px;
+  accent-color: var(--green);
+  cursor: inherit;
+}
+
+.importrow__body {
+  min-width: 0;
+}
+
+.importrow__content {
+  margin: 4px 0 0;
+  max-width: var(--reading);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* 카드 제목 줄에 버튼을 함께 놓을 때 */
+.card__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s2);
+  margin-bottom: var(--s2);
+}
+
+.card__head .card__title {
+  margin: 0;
+}
+
+/* ---------- 관찰 항목의 영역 선택 ---------- */
+
+/* 칩처럼 보이는 드롭다운. 영역은 타이핑이 아니라 고르게 한다. */
+.areasel {
+  padding: 1px var(--s1);
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 1.6;
+  cursor: pointer;
+  background: var(--green-surface);
+  border: 1px solid var(--green);
+  color: var(--green);
+}
+
+/* 아직 영역이 없는 건 — 처리해야 할 항목이라 눈에 띄게 (상태색 예외) */
+.areasel--unset {
+  background: var(--warn-surface);
+  border-color: var(--warn);
+  color: var(--warn-text);
+}
+
+.areasel:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+}
+
+.obs__actions {
+  display: flex;
+  gap: var(--s2);
+  margin-top: var(--s1);
+}
+
+/* 미지정 타일에서 안내를 받아 이동했을 때 잠깐 강조 */
+.obs__item.is-flash {
+  animation: flash 1.2s ease-out;
+}
+
+@keyframes flash {
+  from {
+    background: var(--warn-surface);
+  }
+  to {
+    background: transparent;
+  }
+}
+
+/* 미지정 타일은 눌러서 이동할 수 있다 */
+.area--link {
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  width: 100%;
+}
+
+.area--link:disabled {
+  cursor: default;
+}
+
+/* ---------- 일지 ---------- */
+
+/*
+ * 카드는 본문 영역(.main__inner)을 그대로 채운다.
+ * 예전에는 카드만 800px 로 묶어 두어, 위의 기간 바나 미작성 박스보다 좁았다.
+ * 폭이 세 가지면 오른쪽이 들쭉날쭉해 보인다 — 하나로 맞춘다.
+ * 카드끼리는 선이 아니라 여백으로 나눈다.
+ */
+.jlist {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.jcard {
+  padding: 20px;
+}
+
+.jcard__head {
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+  margin-bottom: var(--s1);
+}
+
+.jcard__date {
+  font-weight: 500;
+}
+
+/* 시각은 봉사일지에만 붙는다. 알약이 아니라 작은 회색 글씨다 —
+   머리 한 줄에 알약이 여럿이면 이름과 날짜가 묻힌다. */
+.jcard__time {
+  font-size: 12px;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+
+/* 수정·삭제는 보조 동작이라 오른쪽 끝으로 민다 */
+.jcard__actions {
+  display: flex;
+  gap: var(--s1);
+  margin-left: auto;
+}
+
+.jcard__actions .linkbtn {
+  font-size: 12px;
+}
+
+.jcard__title {
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+/* 카드의 주인공. 폭은 카드가 잡고, 여기서는 읽기 좋은 줄 간격만 준다. */
+.jcard__content {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--text-muted);
+}
+
+
+/* 일지 본문 접기(m/fold.js) — 줄 수만 화면마다 */
+.fold {
+  --fold-lines: 4;
+}
+
+.fold.is-folded {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--fold-lines);
+  overflow: hidden;
+}
+
+.fold__toggle {
+  align-self: flex-start;
+}
+
+@media (max-width: 720px) {
+  .fold {
+    --fold-lines: 2;
+  }
+}
+
+.bookform__isbn {
+  display: flex;
+  gap: var(--s1);
+  align-items: center;
+}
+
+.bookform__isbn .input {
+  flex: 1;
+  min-width: 0;
+}
+
+.roster__more {
+  display: block;
+  margin: var(--s2) auto;
+}
+
+/* 수퍼비전 댓글 한 줄. 제목도 구분선도 없이 인용으로만 둔다. */
+.jquote {
+  margin: 12px 0 0;
+  padding: var(--s1) var(--s2);
+  background: var(--green-surface);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.jedit {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  margin-top: 12px;
+}
+
+.jedit__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+}
+
+/* ---------- 카드 발 한 줄 (수퍼비전 · 관찰 · 자원) ---------- */
+
+.jfoot {
+  display: flex;
+  gap: 0;
+  margin-top: 12px;
+}
+
+/* 링크 사이는 가운뎃점으로 나눈다. 버튼처럼 보이면 본문과 다투게 된다. */
+.jfoot__link + .jfoot__link::before {
+  content: "·";
+  margin: 0 var(--s1);
+  color: var(--border);
+}
+
+.jfoot__link {
+  padding: 0;
+  background: none;
+  border: 0;
+  font: inherit;
+  font-size: 12px;
+  color: var(--text-faint);
+  cursor: pointer;
+}
+
+.jfoot__link:hover {
+  color: var(--text-muted);
+  text-decoration: underline;
+}
+
+.jfoot__link.is-open {
+  color: var(--green);
+  font-weight: 500;
+}
+
+/* 펼친 자리. 발 한 줄이 이미 경계 노릇을 하므로 선은 긋지 않는다. */
+.jpanel {
+  margin-top: var(--s1);
+  padding-top: var(--s1);
+  border-top: 1px solid var(--border);
+}
+
+.jpanel .extract {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+/* ---------- 봉사일지 모달 ---------- */
+
+.modal__dialog--wide {
+  max-width: 640px;
+}
+
+/* 수정할 때 위에 뜨는 읽기 전용 한 줄 */
+.vj__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s1);
+  margin: 0;
+  padding: var(--s1) var(--s2);
+  background: var(--surface-sunken);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+}
+
+/* 이 일지에서 추출된 관찰 — 일지 본문과 구분되게 한 칸 띄우고 선 하나 */
+.extract {
+  margin-top: var(--s2);
+  padding-top: var(--s2);
+  border-top: 1px solid var(--border);
+}
+
+.extract__note {
+  margin: 0 0 var(--s1);
+  max-width: var(--reading);
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.extract__note--error {
+  color: var(--danger);
+}
+
+.extract__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  margin: 0 0 var(--s1);
+  padding: 0;
+  list-style: none;
+}
+
+.extract__item {
+  padding: var(--s1) var(--s2);
+  background: var(--surface-sunken);
+  border-radius: var(--radius-sm);
+}
+
+.extract__content {
+  margin: 4px 0 0;
+  max-width: var(--reading);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- 자원통계 ---------- */
+
+.rstat {
+  margin-bottom: var(--s3);
+}
+
+.rstat__label {
+  min-width: 10ch;
+  text-align: center;
+  font-weight: 500;
+}
+
+.rstat__name {
+  font-weight: 500;
+}
+
+.rstat__delta {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* 늘고 주는 것에 좋고 나쁨을 붙이지 않는다.
+   많이 쓴 것이 늘 좋은 것은 아니다. 녹색은 강조일 뿐이다. */
+.rstat__delta--up {
+  color: var(--green);
+}
+
+.rstat__delta--down {
+  color: var(--text-muted);
+}
+
+/* 카테고리별 막대 */
+.bars {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bars__row {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  width: 100%;
+  padding: 6px var(--s1);
+  background: none;
+  border: 0;
+  border-radius: var(--radius-sm);
+  font: inherit;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.bars__row:hover {
+  background: var(--surface-sunken);
+}
+
+.bars__name {
+  width: 12ch;
+  flex-shrink: 0;
+  font-weight: 500;
+}
+
+.bars__track {
+  flex: 1;
+  height: 20px;
+  background: var(--surface-sunken);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.bars__fill {
+  display: block;
+  height: 100%;
+  min-width: 2px;
+  background: var(--green);
+  border-radius: var(--radius-sm);
+}
+
+.bars__value {
+  width: 14ch;
+  flex-shrink: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+  text-align: right;
+}
+
+.bars__inner {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 4px 0 var(--s2);
+  padding: var(--s1) var(--s2);
+  background: var(--surface-sunken);
+  border-radius: var(--radius-sm);
+  list-style: none;
+}
+
+.bars__entry {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s2);
+  font-size: 14px;
+}
+
+.bars__entry > span:first-child {
+  flex: 1;
+}
+
+/* 방치 후보 안내문 */
+.idle__hint {
+  margin: 0 0 var(--s2);
+  max-width: var(--reading);
+  font-size: 13px;
+  color: var(--warn-text);
+}
+
+/* ---------- 일지에서 추출된 자원 (사후 수정) ---------- */
+
+.resx__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  margin: 0 0 var(--s1);
+  padding: 0;
+  list-style: none;
+}
+
+/*
+ * 관찰 카드(.extract__item)와 같은 모양이다.
+ * 같은 자리에서 같은 종류의 일을 하므로 여백·배경·버튼 자리를 맞춘다.
+ * 여기서는 자원에만 있는 것(편집 칸의 나란한 배치)만 더한다.
+ */
+.resx__edit {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s1);
+  margin-top: 4px;
+}
+
+.resx__editor .form__actions {
+  margin-top: var(--s1);
+}
+
+.resx__input {
+  width: 16ch;
+}
+
+.resx__select {
+  width: 14ch;
+}
+
+.resx__name {
+  font-weight: 500;
+}
+
+/* "자원 아님"으로 둔 줄. 지운 것이 아니라 판단이 끝난 것이라 흐리게만 둔다. */
+.resx__name--off {
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+
+.resx__category {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.btn--small {
+  padding: 4px 12px;
+  font-size: 13px;
+}
+
+/* ---------- 자원사전 ---------- */
+
+.reslist {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+}
+
+.resgroup {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+/* 묶음 머리. 눌러서 접고 편다. */
+.resgroup__head {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  width: 100%;
+  padding: var(--s2);
+  background: none;
+  border: 0;
+  font: inherit;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.resgroup__head:hover {
+  background: var(--surface-sunken);
+}
+
+.resgroup__mark {
+  width: 1em;
+  color: var(--text-muted);
+}
+
+.resgroup__name {
+  flex: 1;
+  font-weight: 500;
+}
+
+.resgroup__count {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.resgroup__empty {
+  margin: 0;
+  padding: 0 var(--s2) var(--s2) var(--s4);
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.reslist__items {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--border);
+}
+
+.res {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  padding: var(--s1) var(--s2) var(--s1) var(--s4);
+  border-bottom: 1px solid var(--border);
+}
+
+.reslist__items .res:last-child {
+  border-bottom: 0;
+}
+
+.res__main {
+  flex: 1;
+  display: flex;
+  align-items: baseline;
+  gap: var(--s2);
+  min-width: 0;
+}
+
+.res__name {
+  font-weight: 500;
+}
+
+.res__aliases {
+  font-size: 13px;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.res__actions {
+  display: flex;
+  gap: var(--s1);
+  flex-shrink: 0;
+}
+
+/* 끌어서 합치기 */
+.res[draggable="true"] {
+  cursor: grab;
+}
+
+.res--dragging {
+  opacity: 0.5;
+}
+
+/* 놓을 자리. 테두리를 안쪽으로 그려 줄 높이가 안 흔들리게 한다 */
+.res--drop {
+  background: var(--green-surface);
+  outline: 2px solid var(--green);
+  outline-offset: -2px;
+}
+
+/* "자원 아님"은 삭제 뒤에 한 칸 떨어뜨린다 */
+.res__reject {
+  margin-left: var(--s1);
+}
+
+/* ---------- 근무 요약 바 ---------- */
+
+.statcard {
+  margin-bottom: var(--s2);
+}
+
+/* 한 줄. 숫자와 이름을 나란히 둬 높이를 낮춘다. */
+.statbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s3);
+  padding: var(--s2) var(--s3);
+}
+
+.statbar__item {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 0;
+  background: none;
+  border: 0;
+  font: inherit;
+  color: inherit;
+}
+
+/* 미작성처럼 누를 수 있는 칸만 손 모양 */
+.statbar__item--click {
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+
+.statbar__item--click:hover .statbar__value {
+  text-decoration: underline;
+}
+
+.statbar__value {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--green);
+}
+
+.statbar__label {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* 미작성이 있으면 주의 색으로 */
+.statbar__item--warn .statbar__value {
+  color: var(--warn-text);
+}
+
+.statcard__foot {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 var(--s3) var(--s1);
+}
+
+.stats__people[hidden] {
+  display: none;
+}
+
+.stats__people:not([hidden]) {
+  padding: 0 var(--s3) var(--s2);
+}
+
+/* ---------- 근무 통계 ---------- */
+
+/* 요약 네 칸. 아동 상세 "한눈에"와 같은 톤 — 큰 숫자 위, 작은 이름 아래. */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--s2);
+  margin: var(--s2) 0;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--s2);
+  background: var(--surface-sunken);
+  border-radius: var(--radius-sm);
+}
+
+.stat__label {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.stats__people {
+  display: flex;
+  flex-direction: column;
+}
+
+/* 역할별 소계 한 줄 */
+.stats__group {
+  margin-top: var(--s2);
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.stats__row {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.stats__row .personchip {
+  min-width: 10ch;
+}
+
+.stats__num {
+  min-width: 6ch;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
+.stats__num--warn {
+  color: var(--warn-text);
+}
+
+/* ---------- 일정 모달: 날짜 줄 ---------- */
+
+.daterows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  margin: var(--s1) 0;
+}
+
+.daterow {
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+}
+
+.daterow .input {
+  width: auto;
+}
+
+.daterow__tilde {
+  color: var(--text-muted);
+}
+
+.daterow__remove {
+  margin-left: auto;
+}
+
+/* 달력에서 고른 날 */
+.calendar__cell.is-selected {
+  background: var(--green-surface);
+  outline: 2px solid var(--green);
+  outline-offset: -2px;
+}
+
+/* ---------- 모달 안 폼 ---------- */
+
+/* 두 열. 이름·전화, 역할·상태처럼 짝을 이루는 칸은 폭이 같아야 한다. */
+.form__row--two .field {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.form__row--two .field .input {
+  width: 100%;
+}
+
+/* ---------- 아동 정보 카드 ---------- */
+
+/*
+ * .sensitive — 민감정보가 있는 영역의 표시.
+ * 지금은 모양을 바꾸지 않는다. 로그인이 생기면 권한이 없을 때 이 클래스를 가리는 데 쓴다.
+ */
+
+.info__toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+  min-width: 0;
+  padding: 0;
+  background: none;
+  border: 0;
+  font: inherit;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.info__toggle .card__title {
+  margin: 0;
+}
+
+/* 접혀 있을 때 한 줄 요약. 학교 · 입소일 · 상태 */
+.info__brief {
+  font-size: 13px;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.info__grid {
+  display: grid;
+  grid-template-columns: 10ch 1fr;
+  gap: 6px var(--s2);
+  margin: var(--s2) 0 0;
+  max-width: var(--reading);
+}
+
+.info__grid dt {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.info__grid dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+/* 갈림길 창은 버튼이 넷이라 좁은 창에서 줄바꿈되어야 한다 */
+.modal__actions--wrap {
+  flex-wrap: wrap;
+}
+
+/* ---------- 변경 기록 (감사 로그) ---------- */
+
+.audit__filters {
+  align-items: center;
+}
+
+.audit__filters .input {
+  width: auto;
+}
+
+.audit__tilde {
+  color: var(--text-muted);
+}
+
+.audit__row {
+  cursor: pointer;
+}
+
+.audit__row:hover td {
+  background: var(--surface-sunken);
+}
+
+.audit__at {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.audit__summary {
+  overflow-wrap: anywhere;
+}
+
+.audit__actor {
+  color: var(--text-muted);
+}
+
+.audit__detail td {
+  padding: var(--s2);
+  background: var(--surface-sunken);
+}
+
+.audit__panes {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--s2);
+}
+
+@media (min-width: 1100px) {
+  .audit__panes:has(.audit__pane + .audit__pane) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.audit__pane-title {
+  margin: 0 0 4px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+/* 되살릴 때 베껴 쓰는 값이다. 줄바꿈을 그대로 두고 옆으로 넘치면 안에서 스크롤한다. */
+.audit__json {
+  margin: 0;
+  max-height: 40vh;
+  padding: var(--s1) var(--s2);
+  overflow: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.audit__meta {
+  margin: var(--s1) 0;
+  font-size: 12px;
+  color: var(--text-faint);
+}
+
+.audit__more {
+  display: flex;
+  justify-content: center;
+  padding: var(--s2);
+}
+
+/* ---------- 도서관 ---------- */
+
+.book__title {
+  font-weight: 500;
+}
+
+/* 제목 아래 작게 붙는 ISBN. 찾을 때 보는 값이라 눈에 띌 필요는 없다. */
+.book__isbn {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-faint);
+  letter-spacing: 0.02em;
+}
+
+.book__isbn-row {
+  display: flex;
+  gap: var(--s1);
+}
+
+.book__isbn-row .input {
+  flex: 1;
+}
+
+.book__actions {
+  white-space: nowrap;
+}
+
+.book__actions .linkbtn + .linkbtn {
+  margin-left: var(--s1);
+}
+
+/* ---------- 사진으로 등록 ---------- */
+
+.photo__pick {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+}
+
+.photo__preview {
+  max-width: 320px;
+  max-height: 240px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+
+.photo__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  margin: 0 0 var(--s2);
+  padding: 0;
+  list-style: none;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.photo__item {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--s1);
+  padding: var(--s1) var(--s2);
+  background: var(--surface-sunken);
+  border-radius: var(--radius-sm);
+}
+
+/* 이미 사전에 있는 것. 지운 것이 아니라 할 일이 없는 것이라 흐리게만 둔다. */
+.photo__item--dup {
+  color: var(--text-muted);
+}
+
+.photo__item--dup .resx__input {
+  color: var(--text-muted);
+}
+
+.photo__check {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--green);
+}
+
+/* ---------- 미분류함 ---------- */
+
+/* 서브탭 옆 카테고리 미정 수. 알림이라 주의 색을 쓴다. */
+.badge--count {
+  margin-left: 6px;
+  padding: 0 8px;
+  background: var(--warn-surface);
+  border-color: var(--warn);
+  color: var(--warn-text);
+}
+
+/* 검토 줄 아래 원본 일지 한 줄. 줄바꿈되어 두 번째 줄로 내려간다. */
+.inbox__source {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s1);
+  margin: var(--s1) 0 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.inbox__meta {
+  flex-shrink: 0;
+  font-weight: 500;
+}
+
+.inbox__excerpt {
+  max-width: var(--reading);
+  overflow-wrap: anywhere;
+}
+
+.inbox__rejected {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.inbox__rejected-item {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  padding: 4px 0;
+}
+
+/* ---------- 카테고리 관리 ---------- */
+
+.rescat {
+  display: flex;
+  flex-direction: column;
+  margin: 0 0 var(--s3);
+  padding: 0;
+  list-style: none;
+}
+
+.rescat__item {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  padding: var(--s1) 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.rescat__item:last-child {
+  border-bottom: 0;
+}
+
+.rescat__name {
+  flex: 1;
+  font-weight: 500;
+}
+
+.rescat__count {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.rescat__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+}
+
+.rescat__item--editing .rescat__input {
+  flex: 1;
+  max-width: 24ch;
+}
+
+.rescat__add {
+  display: flex;
+  gap: var(--s1);
+  max-width: 40ch;
+}
+
+.rescat__add .input {
+  flex: 1;
+}
+
+/* ---------- 미작성 알림 (봉사일지) ---------- */
+
+.missing {
+  margin-bottom: 12px;
+  padding: 16px;
+  background: var(--warn-surface);
+  border: 1px solid var(--warn);
+  border-radius: var(--radius-sm);
+}
+
+.missing__title {
+  margin: 0 0 var(--s1);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--warn-text);
+}
+
+.missing__list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.missing__item {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--warn-text);
+}
+
+/* [일지 작성]은 줄마다 하나씩 있어 눈에 띌 필요가 없다. 글자 크기를 줄에 맞춘다. */
+.missing__item .linkbtn {
+  font-size: 12px;
+}
+
+.missing__who {
+  min-width: 14ch;
+}
+
+/* 달 이동 */
+.btn--icon {
+  padding: 6px 12px;
+  font-size: 16px;
+  line-height: 1;
+}
+
+/* 개인정보 안내문 */
+.notice {
+  margin: 0;
+  max-width: 60ch;
+  padding: var(--s1) var(--s2);
+  background: var(--warn-surface);
+  border: 1px solid var(--warn);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--warn-text);
+}
+
+/* 개인정보 안내는 예시까지 들어 길다. 한 단계 작게 두고 줄 간격을 넓힌다. */
+.notice--privacy {
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.notice__lead {
+  margin: 0;
+}
+
+/* 예시는 규칙이 아니라 거드는 말이다. 회색으로 한 걸음 물린다. */
+.notice__examples {
+  margin: var(--s1) 0 0;
+  padding-left: var(--s2);
+  list-style: none;
+  color: var(--muted);
+}
+
+.notice__examples li::before {
+  content: "· ";
+}
+
+/* ---------- 스낵바 ---------- */
+
+.snackbar {
+  position: fixed;
+  left: var(--s3);
+  bottom: var(--s3);
+  z-index: 10;
+  max-width: 48ch;
+  padding: var(--s1) var(--s2);
+  background: var(--text);
+  color: #fff;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.2);
+}
+
+.snackbar--error {
+  background: var(--danger);
+}
+
+/* 카드 안에 들어가는 빈 상태는 여백을 줄인다 */
+.state--inline {
+  padding: var(--s3) 0 var(--s1);
+  text-align: left;
+}
+
+/* ---------- 좁은 화면 ---------- */
+
+@media (max-width: 720px) {
+  :root {
+    /* 서브탭을 세로 칸으로 쓰지 않는다. 아래에서 가로 띠로 옮긴다. */
+    --subnav-w: 0px;
+  }
+
+  /*
+   * 서브탭은 세로 칸에서 앱바 아래 가로 띠로 내려온다.
+   *
+   * 예전에는 여기서 display:none 이었다. 폰에서는 서브탭이 아예 사라져
+   * 도서관·자원사전·미분류함·자원통계·스케줄·봉사일지에 들어갈 방법이 없었다.
+   * 메인 메뉴가 데려다 주는 첫 화면 하나만 볼 수 있었던 셈이다.
+   *
+   * 폰을 제대로 맞추는 일은 봉사자 모바일 단계의 몫이다. 여기서는
+   * "PC 화면을 폰에서도 조작할 수 있다" 까지만 한다.
+   */
+  /*
+   * 본문은 한 줄 — 위에 서브탭 칩 띠, 가운데 화면, 아래 탭바. 폭을 전부 화면에 준다.
+   * 탭바는 떠 있는(fixed) 것이 아니라 격자의 마지막 줄이다(/m 과 같다) —
+   * 화면(.main)만 굴러가므로 본문 끝이 탭바에 가리지 않고, 모달(fixed)은 탭바 위를 덮는다.
+   */
+  .app__body {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr auto;
+  }
+
+  /* 아래 탭바 — /m 의 .mtabs 와 같은 모양(위 테두리, 고른 탭은 초록 윗줄·굵게) */
+  .rail {
+    grid-row: 3;
+    grid-column: 1 / -1;
+    flex-direction: row;
+    padding: 0 0 env(safe-area-inset-bottom);
+    border-right: 0;
+    border-top: 1px solid var(--border);
+  }
+
+  /* 묶음은 넓은 화면(위·아래 나누기)에서만 뜻이 있다. 탭바에서는 세 칸이 고르게 */
+  .rail__group {
+    display: contents;
+  }
+
+  .rail__item {
+    flex: 1 1 0;
+    justify-content: center;
+    gap: 2px;
+    height: var(--tabbar-h);
+    min-height: 44px;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .rail__icon {
+    width: 48px;
+    height: 26px;
+    font-size: 17px;
+  }
+
+  .rail__label {
+    font-size: 13px;
+  }
+
+  .rail__item.is-active {
+    font-weight: 700;
+    box-shadow: inset 0 2px 0 var(--green);
+  }
+
+  .rail__item:focus-visible {
+    outline-offset: -2px;
+  }
+
+  /* 탭바를 비켜 선다 */
+  .totop,
+  .snackbar {
+    bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + var(--s2));
+  }
+
+  /* [hidden] 을 이기지 않게 :not 으로 받는다 — 안 그러면 숨긴 서브탭까지 나온다 */
+  .subnav:not([hidden]) {
+    display: flex;
+    align-items: center;
+    gap: var(--s1);
+  }
+
+  .subnav {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    padding: var(--s1) var(--s2);
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+    /* 항목이 화면보다 길면 옆으로 민다. 잘려서 못 누르는 일이 없어야 한다. */
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+  }
+
+  /* 가로 띠에서는 제목이 자리만 먹는다. 같은 이름이 아래 탭바에 이미 있다. */
+  .subnav__heading {
+    display: none;
+  }
+
+  .subnav__list,
+  .subnav__sub {
+    flex-direction: row;
+    align-items: center;
+    margin: 0;
+    /* 세로로 쌓일 때 쓰던 들여쓰기 선. 가로로 누우면 뜻이 없다. */
+    border-left: 0;
+  }
+
+  .subnav__list > li {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* 딸린 목록이라는 것을 세로선 대신 가운뎃점으로 알린다 */
+  .subnav__sub::before {
+    content: "·";
+    padding: 0 2px;
+    color: var(--text-faint);
+  }
+
+  .subnav__item {
+    width: auto;
+    /* 좁다고 글자가 접히면 띠가 두꺼워진다. 대신 옆으로 민다. */
+    white-space: nowrap;
+  }
+
+  .main {
+    grid-row: 2;
+    padding: var(--s2);
+  }
+
+  /* 화면 안의 칩 줄(상태 필터·기간 단위 …)도 잘리는 대신 옆으로 밀리게 둔다 */
+  .chips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+
+  .chip {
+    white-space: nowrap;
+  }
+
+  .search__input {
+    width: 100%;
+  }
+
+  /* 날짜를 옆이 아니라 위에 둔다 */
+  .obs__item {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+}
+
+/* ---------- 관찰 끌어서 합치기 (일지 카드 · 아동 상세 공용) ---------- */
+
+/*
+ * 자원사전과 같은 방식이지만 클래스를 따로 둔다.
+ * 관찰은 "같은 아동·같은 날짜"라는 조건이 있어 놓을 수 없는 자리가 생기고,
+ * 그 자리를 알리는 표시가 자원 쪽에는 없다.
+ */
+.obsdrag {
+  cursor: grab;
+}
+
+.obsdrag--dragging {
+  opacity: 0.5;
+}
+
+/* 놓을 수 있는 자리. 테두리를 안쪽으로 그려 줄 높이가 안 흔들리게 한다 */
+.obsdrag--drop {
+  background: var(--green-surface);
+  outline: 2px solid var(--green);
+  outline-offset: -2px;
+}
+
+/*
+ * 놓을 수 없는 자리. 색으로 나무라지 않는다 —
+ * 조건이 안 맞을 뿐 잘못한 것이 아니다. 흐리게만 하고, 커서는 브라우저가 알린다.
+ */
+.obsdrag--nodrop {
+  opacity: 0.45;
+}
+
+/* 확인창의 "이렇게 저장됩니다" 미리보기 */
+.confirm__preview {
+  margin: 0;
+  max-height: 180px;
+  overflow-y: auto;
+  padding: var(--s1) var(--s2);
+  background: var(--surface-sunken);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- 아동 확인 필요 (일지 카드의 추출 관찰) ---------- */
+
+/* 사람이 손대야 끝나는 줄. 왼쪽에 주의 색 띠 하나로만 알린다. */
+.extract__item--pending {
+  border-left: 3px solid var(--warn);
+}
+
+.pending {
+  margin-top: var(--s1);
+}
+
+.pending__note {
+  margin: 0 0 var(--s1);
+  max-width: var(--reading);
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* 후보 버튼과 명단 드롭다운을 한 줄에. 좁아지면 접힌다. */
+.pending__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s1);
+}
+
+/* 명단 전체는 후보보다 뒤에 오는 길이라 넓게 벌리지 않는다 */
+.pending__select {
+  width: auto;
+  min-width: 160px;
+  padding: 4px 8px;
+}
+
+/* ---------- ISBN 조회 결과 한 줄 ---------- */
+
+/* 어디서 받아왔는지 알리는 줄. 사실을 적는 자리라 녹색으로 살짝만 띄운다. */
+.booklookup {
+  margin-top: var(--s1);
+  color: var(--green);
+}
+
+/* 실패는 사람이 할 일이 다르다(키 확인 / 다시 시도). 눈에 띄어야 한다. */
+.booklookup--error {
+  color: var(--danger);
+}
+
+/* 책소개는 참고로만 보여 준다. 어느 칸에도 저장되지 않는다는 것이 보이게 흐리고 작게. */
+.booklookup__blurb {
+  display: block;
+  margin-top: 4px;
+  max-width: var(--reading);
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* 아직 분석하지 않은 일지. "0건" 과 달라 보여야 해서 주의 색으로 적는다. */
+.jfoot__link--unanalyzed {
+  color: var(--warn-text);
+}
+
+/* ---------- 맨 위로 ---------- */
+
+/*
+ * 긴 목록에서만 뜬다. 본문 칸 오른쪽 아래에 떠 있되 내용을 가리지 않게 작게.
+ * 포인트 색 하나만 쓴다.
+ */
+.totop {
+  position: fixed;
+  right: var(--s3);
+  bottom: var(--s3);
+  z-index: 40;
+
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+
+  background: var(--surface);
+  color: var(--green);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 12%);
+}
+
+.totop:hover {
+  background: var(--green-surface);
+  border-color: var(--green);
+}
+
+.totop:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+}
+
+/* ---------- 다시 분석한 결과 고르기 ---------- */
+
+/* 목록 위에 얹히는 칸. 고를 것이 있다는 게 한눈에 보이게 주의 색 띠를 왼쪽에. */
+.diff {
+  margin-bottom: var(--s2);
+  padding: var(--s2);
+  border-left: 3px solid var(--warn);
+  background: var(--surface-sunken);
+  border-radius: var(--radius-sm);
+}
+
+.diff__head {
+  margin: 0 0 var(--s2);
+  max-width: var(--reading);
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.diff__row {
+  margin-bottom: var(--s2);
+}
+
+/* 옛것과 새것을 나란히. 좁아지면 위아래로 접힌다 — 휴대폰에서 두 칸은 너무 좁다. */
+.diff__pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s1);
+  margin-top: 4px;
+}
+
+@media (max-width: 720px) {
+  .diff__pair {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 고르는 칸 자체가 버튼이다. 글을 읽으면서 그 자리를 누르면 된다. */
+.diff__side {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--s1) var(--s2);
+  text-align: left;
+
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.diff__side:hover {
+  border-color: var(--green);
+}
+
+/* 고른 쪽. 테두리를 안쪽으로 그려 줄 높이가 안 흔들리게 한다. */
+.diff__side.is-picked {
+  background: var(--green-surface);
+  border-color: var(--green);
+  outline: 1px solid var(--green);
+  outline-offset: -2px;
+}
+
+.diff__label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.diff__side.is-picked .diff__label {
+  color: var(--green);
+}
+
+.diff__text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* 일괄 분석 진행 한 줄 */
+.jbatch {
+  margin-top: var(--s1);
+  color: var(--green);
+}
+
+/* 일지에서 자동으로 올라온 자원. 사람이 카테고리를 만지면 사라지는 표시다. */
+.res__auto {
+  margin-left: var(--s1);
+  vertical-align: middle;
+}
+
+/* 별칭 한 조각. 끌어내면 따로 떨어져 나온다. */
+.res__alias {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-right: 6px;
+  padding: 1px 6px 1px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  cursor: grab;
+}
+
+/* 별칭 떼어내기 — 밖으로 빼는 화살표 아이콘. 누르는 자리는 44px(알약 높이는 그대로 두고 앞뒤로 넓힌다) */
+.res__split {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.res__split::before {
+  content: "";
+  position: absolute;
+  inset: -12px;
+}
+
+.res__split:hover {
+  color: var(--green);
+  background: var(--green-surface);
+}
+
+.res__split:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* 별칭을 끌고 있는 동안 "여기 놓으면 됩니다"를 보인다 */
+.reslist--drop {
+  outline: 2px dashed var(--green);
+  outline-offset: 4px;
+  border-radius: var(--radius-sm);
+}
+
+/* ---------- 도서관 — 두 갈래 · 책 찾아보기 · 바코드 ---------- */
+
+.books__tabs {
+  margin-bottom: var(--s2);
+}
+
+/* 분류 필터. 검색칸 옆이라 좁게 둔다. */
+.book__filter {
+  width: 13ch;
+}
+
+.bfind {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  margin: 0 0 var(--s2);
+  padding: 0;
+  list-style: none;
+}
+
+.bfind__item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s2);
+  padding: var(--s2);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+/* 표지 자리는 그림이 없어도 비워 둔다. 있고 없고에 따라 줄이 흔들리면 읽기 어렵다. */
+.bfind__cover {
+  flex: 0 0 auto;
+  width: 56px;
+  height: 80px;
+  background: var(--surface-sunken);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.bfind__cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bfind__body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.bfind__title {
+  margin: 0;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.bfind__meta {
+  margin: 2px 0 6px;
+  font-size: 13px;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.bfind__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--s1);
+  flex: 0 0 auto;
+}
+
+.bfind__more {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--s2);
+}
+
+/* 카메라 화면. 세로로 든 폰에서도 바코드가 가로로 눕도록 4:3 으로 둔다. */
+.scan__box {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  background: #000;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.scan__video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 어디에 맞추면 되는지 알려 주는 틀 */
+.scan__frame {
+  position: absolute;
+  inset: 28% 10%;
+  border: 2px solid rgb(255 255 255 / 0.9);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 0 0 100vmax rgb(0 0 0 / 0.35);
+}
+
+/* 좁은 화면에서는 찾은 책을 위아래로 쌓는다 */
+@media (max-width: 640px) {
+  .bfind__item {
+    flex-wrap: wrap;
+  }
+
+  .bfind__actions {
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+  }
+}
+
+/* ---------- 로그인 화면 (별도 페이지) ---------- */
+
+.login {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  padding: var(--s3);
+  background: var(--surface-sunken);
+}
+
+.login__box {
+  width: 100%;
+  max-width: 400px;
+  padding: var(--s4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.login__brand {
+  margin: 0 0 var(--s3);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--green);
+}
+
+.login__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
+.login__lead {
+  margin: 0;
+  color: var(--text-muted);
+  word-break: keep-all;
+}
+
+/* 최초 부팅 — 명단이 비었을 때 첫 종사자 입력(칸 모양은 다른 칸과 같게, 테두리 없이) */
+.boot__new {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.boot__new > legend {
+  padding: 0;
+  margin-bottom: var(--s1);
+  font-weight: 700;
+}
+
+.boot__new[hidden] {
+  display: none;
+}
+
+/* 초대코드는 여섯 자리를 눈으로 세어야 한다. 자간을 벌리고 고정폭으로 둔다. */
+.login__code {
+  font-family: ui-monospace, "D2Coding", Menlo, monospace;
+  font-size: 20px;
+  letter-spacing: 0.4em;
+  text-align: center;
+}
+
+.login__switch {
+  margin: 0;
+  text-align: center;
+}
+
+.login__error {
+  margin: var(--s2) 0 0;
+  padding: var(--s1) var(--s2);
+  background: var(--danger-surface, #fbeceb);
+  color: var(--danger);
+  border-radius: var(--radius-sm);
+}
+
+/* 개인정보 처리 안내(첫 비밀번호·기존 계정 1회 동의) — 문구는 설정에서 온다 */
+.consent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  word-break: keep-all;
+  padding: var(--s2);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.consent__title {
+  margin: 0;
+  font-weight: 700;
+}
+
+/* 동의 화면 맨 위 요약 세 줄 — 전문보다 먼저 읽힌다 */
+.consent__summary {
+  margin: 0;
+  padding: var(--s1) var(--s2);
+  border-radius: var(--radius-sm);
+  background: var(--green-surface);
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.6;
+  list-style: none;
+  word-break: keep-all;
+}
+
+.consent__summary li + li {
+  margin-top: 2px;
+}
+
+.consent__text {
+  margin: 0;
+  max-height: 12rem;
+  overflow-y: auto;
+  color: var(--text-muted);
+  white-space: pre-wrap;
+  line-height: 1.6;
+}
+
+/* 처리방침 전문 — 로그인 화면 안에서 펼친다 */
+.consent__full {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 20rem;
+  overflow-y: auto;
+  padding: var(--s1) var(--s2);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.consent__full .consent__text {
+  max-height: none;
+  overflow: visible;
+  margin-bottom: var(--s1);
+}
+
+.consent__subtitle {
+  margin: 0;
+  font-weight: 700;
+}
+
+.consent__link {
+  align-self: flex-start;
+  text-align: left;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--green);
+}
+
+.consent__check {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s1);
+  min-height: 44px;
+  padding-top: var(--s1);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.consent__check input {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  margin: 2px 0 0;
+  accent-color: var(--green);
+}
+
+.login__foot {
+  margin: var(--s3) 0 0;
+  text-align: center;
+  font-size: 14px;
+}
+
+.login__foot a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 var(--s1);
+  color: var(--text-muted);
+}
+
+/* ---------- 앱바의 지금 사용자 ---------- */
+
+/*
+ * 공용 PC 를 여럿이 쓴다. "지금 누구인지" 가 늘 보여야
+ * 앞사람 계정으로 일지를 쓰는 사고가 준다. 로그아웃 버튼보다 이름 표시가 더 잘 막는다.
+ */
+.appbar__me {
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+  margin-left: auto;
+  font-size: 13px;
+  color: #fff;
+}
+
+.appbar__name {
+  font-weight: 700;
+}
+
+.appbar__level {
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  background: rgb(255 255 255 / 0.18);
+}
+
+.appbar__logout {
+  padding: 2px 10px;
+  border: 1px solid rgb(255 255 255 / 0.4);
+  border-radius: 999px;
+  background: none;
+  color: #fff;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.appbar__logout:hover {
+  background: rgb(255 255 255 / 0.12);
+}
+
+/* ---------- 계정 관리 ---------- */
+
+.acct__list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.acct {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s1) var(--s2);
+  padding: var(--s2);
+  background: var(--surface);
+}
+
+.acct__who {
+  min-width: 12ch;
+  font-weight: 500;
+}
+
+/* 로그인 이름이 화면 이름과 다르면 그 사실이 보여야 한다 */
+.acct__login {
+  display: block;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-family: ui-monospace, "D2Coding", Menlo, monospace;
+}
+
+.acct__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.acct__meta {
+  font-size: 12px;
+  color: var(--text-faint);
+}
+
+/* 봉사 등급 + PC 접속 경고 — 줄 하나를 통째로 쓴다(노랑 = 주의) */
+.acct__warn {
+  flex: 1 1 100%;
+  font-size: 14px;
+  color: var(--warn-text);
+}
+
+.acct__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s1);
+  margin-left: auto;
+}
+
+/* 초대코드 여섯 자리. 구두로 불러 주는 값이라 멀리서도 읽혀야 한다. */
+.confirm__preview--code {
+  font-family: ui-monospace, "D2Coding", Menlo, monospace;
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  text-align: center;
+  color: var(--green);
+  background: var(--green-surface);
+}
+
+/* 좁은 화면(종사자 폰): 한 줄 = 이름 · 상태 알약 · [주 동작] · [⋯] — 나머지는 ⋯ 메뉴에 */
+@media (max-width: 720px) {
+  .acct {
+    flex-wrap: nowrap;
+    gap: var(--s1);
+    padding: 4px var(--s1) 4px var(--s2);
+  }
+
+  .acct__who {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .acct__login,
+  .acct__meta,
+  .acct__extra {
+    display: none;
+  }
+
+  .acct__tags {
+    flex: none;
+    flex-wrap: nowrap;
+  }
+
+  .acct__actions {
+    flex: none;
+    flex-wrap: nowrap;
+  }
+
+  /* 경고(봉사 등급 + PC)는 드물다 — 있으면 다음 줄에 */
+  .acct:has(.acct__warn) {
+    flex-wrap: wrap;
+  }
+
+  .acct__note {
+    max-width: 9rem;
+  }
+}
+
+/* ---------- 계정 관리: 묶음과 더보기 메뉴 ---------- */
+
+.acctgroup {
+  margin-bottom: var(--s3);
+}
+
+.acctgroup__title {
+  margin: 0 0 var(--s1);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+/* [⋯] — 접어 둔 나머지 동작을 여는 자리 */
+.acct__more {
+  padding: 2px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text-muted);
+  font: inherit;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.acct__more:hover {
+  background: var(--surface-sunken);
+}
+
+/*
+ * 드롭다운 메뉴 — 화면 맨 위에 fixed 로 뜬다.
+ *
+ * 버튼 옆에 붙여 두면 그 줄을 감싼 칸(.main 은 세로로 굴러간다)이 잘라 버린다.
+ * 자리는 ui.js 가 열 때 재어 넣는다 — 오른쪽·아래가 모자라면 반대로 편다.
+ */
+.menu {
+  position: fixed;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  min-width: 180px;
+  max-width: min(280px, calc(100vw - 16px));
+  padding: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.14);
+}
+
+.menu__item {
+  padding: var(--s1) var(--s2);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.menu__item:hover:not(:disabled) {
+  background: var(--surface-sunken);
+}
+
+/* 되돌리기 어려운 것. 색으로 알아보게 하고, 막는 것은 확인창이 한다. */
+.menu__item--danger {
+  color: var(--danger);
+}
+
+.menu__item--danger:hover:not(:disabled) {
+  background: var(--danger-surface, #fbeceb);
+}
+
+/* 지금은 할 수 없는 것. 왜 안 되는지는 title 에 적어 둔다. */
+.menu__item:disabled {
+  color: var(--text-disabled);
+  cursor: not-allowed;
+}
+
+/* ---------- 관문 경고 ---------- */
+
+.warn__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.warn {
+  padding: var(--s2);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--warn);
+  border-radius: var(--radius-sm);
+}
+
+.warn__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s1);
+}
+
+.warn__method {
+  font-family: ui-monospace, "D2Coding", Menlo, monospace;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--green);
+}
+
+.warn__path {
+  font-family: ui-monospace, "D2Coding", Menlo, monospace;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.warn__why {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* ---------- 성장 추이 ---------- */
+
+.growth {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
+.growth__part {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+}
+
+.growth__head {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.growth__toggle {
+  cursor: pointer;
+}
+
+/* 표가 넓어지면 카드 안에서만 옆으로 민다. 화면 전체가 옆으로 밀리면 안 된다. */
+.growth__scroll {
+  overflow-x: auto;
+}
+
+.growth__table {
+  min-width: 100%;
+}
+
+.growth__table--items .growth__text {
+  min-width: 18rem;
+}
+
+.growth__num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.growth__period {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.growth__first td {
+  border-top: 2px solid var(--border-strong);
+}
+
+.growth__muted {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.growth__area {
+  background: var(--surface-sunken);
+  font-weight: 700;
+  color: var(--green);
+  text-align: left;
+}
+
+/* 막대는 눈으로 훑는 용도다. 좋고 나쁨의 색을 붙이지 않는다 — 녹색 하나. */
+.growth__bar {
+  display: inline-block;
+  width: 56px;
+  height: 6px;
+  margin-left: var(--s1);
+  vertical-align: middle;
+  background: var(--surface-sunken);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.growth__fill {
+  display: block;
+  height: 100%;
+  background: var(--green);
+}
+
+.growth__notes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.growth__note {
+  margin: 2px 0 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- 반기 관찰 항목 편집 ---------- */
+
+.items__group {
+  margin: var(--s2) 0 var(--s1);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--green);
+}
+
+.items__list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.items__row {
+  display: grid;
+  grid-template-columns: 3.5rem 6rem 1fr auto;
+  align-items: center;
+  gap: var(--s1);
+}
+
+.items__view {
+  display: grid;
+  grid-template-columns: 3.5rem 1fr;
+  gap: var(--s1);
+}
+
+.items__code {
+  font-family: ui-monospace, "D2Coding", Menlo, monospace;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.items__row--deleted .items__text,
+.items__view--deleted {
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+
+.items__add {
+  display: grid;
+  grid-template-columns: 6rem 1fr auto;
+  gap: var(--s1);
+  margin-top: var(--s2);
+}
+
+/* ---------- 봉사자 정량 관찰 (참고) ---------- */
+
+/*
+ * 평가의 근거가 아니라 옆에 놓고 보는 값이다. 그래서 카드 안쪽에 옅게 깔고,
+ * 첫 줄에 "참고용" 이라고 적어 둔다 — 나중에 이 수를 근거로 삼는 일이 없게.
+ */
+.quant {
+  margin: var(--s2) 0;
+  padding: var(--s2);
+  background: var(--surface-sunken);
+  border-radius: var(--radius-sm);
+}
+
+.quant__head {
+  margin: 0 0 var(--s1);
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.quant__areas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s1) var(--s3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.quant__area {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.quant__name {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.quant__value {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--green);
+  font-variant-numeric: tabular-nums;
+}
+
+.quant__sub {
+  margin: var(--s1) 0 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* ---------- 근거가 바뀌었습니다 ---------- */
+
+.evid {
+  margin: var(--s2) 0;
+  padding: var(--s2);
+  background: var(--warn-surface);
+  border: 1px solid var(--warn, #c8a43a);
+  border-radius: var(--radius-sm);
+}
+
+.evid__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s1);
+}
+
+.evid__title {
+  margin: 0;
+  font-weight: 700;
+  color: var(--warn-text);
+}
+
+.evid__counts {
+  margin: 2px 0 0;
+  font-size: 14px;
+  color: var(--warn-text);
+}
+
+.evid__actions {
+  display: flex;
+  gap: var(--s1);
+}
+
+.evid__list {
+  margin-top: var(--s2);
+  padding-top: var(--s2);
+  border-top: 1px solid var(--warn, #c8a43a);
+}
+
+.evid__group {
+  margin: var(--s2) 0 0;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.evid__group:first-child {
+  margin-top: 0;
+}
+
+.evid__why {
+  margin: 2px 0 var(--s1);
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* 추적 이전 평가·확인 완료처럼 조용히 알리는 줄 */
+.evid__note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s1);
+  margin: var(--s2) 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* ---------- 사진 모달 — 좁은 화면(폰에서 여는 경우) ---------- */
+
+@media (max-width: 640px) {
+  /*
+   * 페이지가 가로로 넘치면(좁은 화면의 넓은 표) 위치가 fixed 인 모달도
+   * 그 넓이를 따라가 화면 밖으로 나간다. 눈에 보이는 너비로 묶어 둔다.
+   */
+  .modal {
+    max-width: 100vw;
+  }
+
+  /*
+   * 모달 창은 .modal 그리드의 칸이라 min-width: auto 가 걸린다.
+   * 그래서 안쪽 내용(파일 선택 칸처럼 줄지 않는 것)보다 좁아지지 못하고
+   * 좁은 화면에서 창이 화면 밖으로 밀려 나간다. 줄어들 수 있게 풀어 준다.
+   */
+  .modal__dialog {
+    min-width: 0;
+  }
+
+  /* 사진은 폰에서 찍어 올리는 일이 대부분이다. 그 화면만 손끝 크기에 맞춘다. */
+  .modal__dialog--photo input[type="file"] {
+    max-width: 100%;
+  }
+
+  .modal__dialog--photo .btn {
+    min-height: 44px;
+  }
+
+  .modal__dialog--photo .modal__actions {
+    flex-wrap: wrap;
+  }
+}
+
+/* ---------- 책 고르기·연속 등록 줄(book_pick.js) ---------- */
+
+/*
+ * 등록 모달의 제목 찾기, 표지 여러 권, 엑셀 "확인 필요" 가 같은 모양을 쓴다.
+ * 줄의 [찾기] 는 그 줄 밑에 펼쳐진다 — 목록을 떠나지 않고 다음 줄로 이어 간다.
+ */
+.cand {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  margin: var(--s1) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bpick {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  min-width: 0;
+}
+
+.bpick__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s1);
+}
+
+.bpick__title {
+  flex: 2 1 12rem;
+  min-width: 0;
+}
+
+.bpick__author {
+  flex: 1 1 8rem;
+  min-width: 0;
+}
+
+.bpick__note {
+  margin: 0;
+}
+
+.bpick__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  max-height: 22rem;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.bpick__list:empty {
+  display: none;
+}
+
+.bpick__item {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--s2);
+  padding: var(--s1);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.bpick__cover {
+  width: 40px;
+  height: 56px;
+  overflow: hidden;
+  background: var(--surface-sunken);
+  border-radius: 2px;
+}
+
+.bpick__cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bpick__body {
+  min-width: 0;
+}
+
+.bpick__name {
+  margin: 0;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.bpick__meta {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.bpick__more {
+  align-self: center;
+}
+
+.bqueue__row {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+/* 등록을 마친 줄. 지우지 않고 남겨 둔다 — 어디까지 했는지가 목록의 쓸모다. */
+.bqueue__row.is-done {
+  background: var(--green-surface);
+  border-color: var(--green);
+}
+
+.bqueue__head {
+  display: grid;
+  grid-template-columns: 1.5rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--s2);
+  padding: var(--s1) var(--s2);
+}
+
+.bqueue__mark {
+  font-weight: 700;
+  color: var(--green);
+  text-align: center;
+}
+
+.bqueue__words {
+  min-width: 0;
+}
+
+.bqueue__heading {
+  margin: 0;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.bqueue__sub {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.bqueue__error {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: var(--danger);
+  overflow-wrap: anywhere;
+}
+
+.bqueue__panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  padding: var(--s2);
+  background: var(--surface-sunken);
+  border-top: 1px solid var(--border);
+}
+
+.bqueue__center {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s1);
+}
+
+.bqueue__center .input:first-child {
+  flex: 1 1 10rem;
+  min-width: 0;
+}
+
+.bqueue__center select {
+  flex: 0 0 auto;
+  width: auto;
+}
+
+.bqueue__manual {
+  align-self: flex-start;
+}
+
+/* ---------- 엑셀로 등록(book_import_ui.js) ---------- */
+
+.bimport section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
+.bimport section[hidden] {
+  display: none;
+}
+
+.bimport__pick {
+  align-self: flex-start;
+  cursor: pointer;
+}
+
+.bimport__map th,
+.bimport__map td {
+  min-width: 7rem;
+  max-width: 14rem;
+  overflow-wrap: anywhere;
+  vertical-align: top;
+}
+
+.bimport__role {
+  font-weight: 400;
+}
+
+.bimport__why {
+  margin: 4px 0 0;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.bimport__progress {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.bimport__bar {
+  height: 8px;
+  overflow: hidden;
+  background: var(--surface-sunken);
+  border-radius: 4px;
+}
+
+.bimport__bar span {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: var(--green);
+  transition: width 0.2s;
+}
+
+.bimport__summary {
+  margin: 0;
+  font-weight: 700;
+}
+
+.bimport__failed {
+  margin: 0;
+  padding-left: var(--s3);
+  font-size: 13px;
+  color: var(--danger);
+}
+
+.bimport__failed li {
+  overflow-wrap: anywhere;
+}
+
+/* 좁은 화면(폰에서 여는 경우)에서는 버튼이 손끝에 맞아야 한다 */
+@media (max-width: 640px) {
+  .bqueue__row .btn,
+  .bpick .btn {
+    min-height: 44px;
+  }
+}
+
+/* ---------- 시스템 점검 ---------- */
+
+/*
+ * 항목마다 카드 하나. 상태는 기호(✅ ⚠️ ❌)와 왼쪽 테두리 색 둘로 알린다 —
+ * 색만으로 알리면 색을 가리기 어려운 사람에게 안 보인다.
+ * 테두리는 상태색(노랑=주의, 빨강=문제)만 쓰고 정상은 포인트 녹색이다.
+ */
+.syscheck {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  margin: var(--s2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.syscheck__item {
+  padding: var(--s2) var(--s3);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--green);
+  border-radius: var(--radius-sm);
+}
+
+.syscheck__item--warn {
+  border-left-color: var(--warn);
+}
+
+.syscheck__item--fail {
+  border-left-color: var(--danger);
+}
+
+.syscheck__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s1) var(--s2);
+}
+
+.syscheck__mark {
+  font-size: 18px;
+}
+
+.syscheck__title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.syscheck__summary {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.syscheck__lines {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: var(--s1) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.syscheck__line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s1);
+  font-size: 14px;
+}
+
+.syscheck__linemark {
+  flex: none;
+  width: 1.5em;
+}
+
+.syscheck__text {
+  flex: 1 1 20rem;
+  overflow-wrap: anywhere;
+}
+
+.syscheck__detail {
+  flex-basis: 100%;
+  margin: 4px 0 var(--s1) 1.5em;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* 상세 표가 넓으면 카드 안에서만 옆으로 민다 */
+.syscheck__scroll {
+  overflow-x: auto;
+}
+
+/* ---------- 관리자 계정 — 관리자가 아닌 사람에게 ---------- */
+
+/* 버튼 대신 놓는 한 줄. 누를 수 없다는 사실만 조용히 알린다. */
+.acct__note,
+.staff__note {
+  font-size: 13px;
+  color: var(--text-faint);
+}
+
+/* ---------- 손끝 크기 (좁은 화면 · 터치 화면) ---------- */
+
+/*
+ * 누르는 것은 44px 이상. 넓은 화면이라도 터치(pointer: coarse)면 같이 적용한다.
+ * 마우스로 쓰는 PC 화면의 촘촘한 모양은 그대로 둔다.
+ */
+@media (max-width: 720px), (pointer: coarse) {
+  button,
+  select,
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]) {
+    min-height: 44px;
+  }
+
+  /* 폼 안 한 줄 입력칸은 위에서 38px 로 맞춰 두었다(더 구체적인 규칙이라 따로 덮는다) */
+  .form .input:not(textarea) {
+    min-height: 44px;
+  }
+
+  button {
+    min-width: 44px;
+  }
+
+  /* 글자 모양 버튼(수정·삭제·이름)도 손끝 높이. 글자는 가운데 둔다. */
+  .linkbtn,
+  .namebtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .subnav__item {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  /* 접었다 펴는 제목줄. 모양(display)은 그대로 두고 높이만 채운다 — 바꾸면 ▸ 표시가 사라진다 */
+  summary {
+    min-height: 44px;
+    padding-block: 11px;
+    box-sizing: border-box;
+  }
+}
+
+/* ---------- 마우스 전용 조작 · 설명 표시 (터치 화면) ---------- */
+
+/*
+ * 끌어 놓기처럼 마우스로만 되는 조작이 있다. 터치 화면에서는 조용히 안 되는 대신
+ * "PC에서 할 수 있어요" 를 보이고, 마우스용 안내는 감춘다.
+ */
+.touch-only {
+  display: none;
+}
+
+/* 메뉴에서 눌리지 않는 항목의 이유. 마우스로는 title 로 본다. */
+.menu__why {
+  display: none;
+}
+
+/* 설명이 딸린 표시. 누르면 설명이 스낵바로 뜬다(ui.js explain). */
+.hint {
+  position: relative;
+  cursor: help;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .touch-only {
+    display: block;
+  }
+
+  .mouse-only {
+    display: none;
+  }
+
+  .menu__why {
+    display: block;
+    max-width: 16rem;
+    margin-top: 2px;
+    font-size: 13px;
+    color: var(--text-muted);
+    white-space: normal;
+  }
+
+  .hint::after {
+    content: " ⓘ";
+  }
+
+  /* 태그 모양은 그대로 두고, 누르는 자리만 손끝 크기로 넓힌다 */
+  .hint::before {
+    content: "";
+    position: absolute;
+    inset: -12px -6px;
+  }
+}
+
+/* 표 안의 태그는 접지 않는다. 좁은 칸에서 한 글자씩 세로로 쌓이면 읽을 수 없다(표는 옆으로 민다). */
+.table .tag {
+  white-space: nowrap;
+}
+
+/* ---------- 나눠 받는 목록의 [더 보기] ---------- */
+
+.more {
+  display: flex;
+  justify-content: center;
+  margin: var(--s2) 0;
+}
+
+/* ---------- 겸직 — 역할 여럿 고르기 ---------- */
+
+.rolepick {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.rolepick__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px var(--s2);
+}
+
+/* 글자까지 누를 수 있게 label 로 감싼다. 손끝 크기는 label 이 채운다 */
+.rolepick__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  cursor: pointer;
+}
+
+@media (max-width: 720px), (pointer: coarse) {
+  .rolepick__item {
+    min-height: 44px;
+  }
+}
+
+.staff__multi {
+  font-size: 12px;
+}
+
+.field__hint {
+  font-weight: 400;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* ---------- 역할 거르기 (겸직 2단계, role_filter.js) ---------- */
+
+.rolefilter {
+  display: inline-flex;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.rolefilter__btn {
+  min-height: 32px;
+  padding: 0 var(--s2);
+  background: var(--surface);
+  border: 0;
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.rolefilter__btn + .rolefilter__btn {
+  border-left: 1px solid var(--border-strong);
+}
+
+.rolefilter__btn[aria-pressed="true"] {
+  background: var(--green);
+  color: #fff;
+}
+
+.rolefilter__btn:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: -2px;
+}
+
+@media (max-width: 720px), (pointer: coarse) {
+  .rolefilter__btn {
+    min-height: 44px;
+  }
+}
+
+/* 점 모양 = 역할. 멘토는 네모, 봉사자는 동그라미(색은 사람 색 그대로) */
+.personchip__dot--mentor {
+  border-radius: 1px;
+}
+
+.calendar__legend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 var(--s1);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.calendar__legenddot {
+  --person: var(--text-muted);
+}
+
+.calendar__legenddot + .calendar__legenddot,
+.calendar__legend .calendar__legenddot:not(:first-child) {
+  margin-left: var(--s1);
+}
+
+.statbar__roles {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- 봉사일지 필터 줄 ---------- */
+
+/* display 를 준 클래스라 [hidden] 을 따로 받는다 */
+.period[hidden] {
+  display: none;
+}
+
+/* 좁은 화면 — [↑ 맨 위로] 도 아래 탭바를 비켜 선다(.totop 정의보다 뒤에 두어야 이긴다) */
+@media (max-width: 720px) {
+  .totop {
+    bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + var(--s2));
+  }
+}
+
+/* 사진 고르기 — [📷 찍기] / [🖼 갤러리] (ui.js mountPhotoSource) */
+.photo__source {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s1);
+}
+
+.photo__btn {
+  flex: 1 1 8em;
+  min-height: 44px;
+}
+
+/* 일정 등록 날짜 줄 — 좁은 화면에서는 날짜를 한 줄, 시각·✕ 를 다음 줄로 접는다(옆으로 넘치지 않게) */
+@media (max-width: 720px) {
+  .daterow {
+    flex-wrap: wrap;
+  }
+
+  .daterow input[type="date"] {
+    flex: 1 1 100%;
+  }
+
+  .daterow input[type="time"] {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+}
+
+/* =========================================================
+   좁은 화면(720px 이하) 대개편 — 종사자 모바일
+   넓은 화면은 아래 두 줄(.narrow-only 숨김, 안내 접기 요약 숨김) 말고는 건드리지 않는다.
+   ========================================================= */
+
+/* 넓은 화면: 좁은 화면 전용인 것은 숨긴다 */
+@media (min-width: 721px) {
+  .narrow-only {
+    display: none !important;
+  }
+
+  /* 개인정보 안내 — 넓은 화면은 늘 펼친 모양, [자세히] 없음 */
+  .notice--privacy .notice__more > summary {
+    display: none;
+  }
+}
+
+/* 안내 [자세히] — 좁은 화면에서 누르는 자리 */
+.notice__more > summary {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.notice__more > summary::marker {
+  content: "";
+}
+
+.notice__more > summary::after {
+  content: " ▾";
+}
+
+.notice__more[open] > summary::after {
+  content: " ▴";
+}
+
+.narrow-note {
+  margin: 0 0 var(--s1);
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+@media (max-width: 720px) {
+  .wide-only {
+    display: none !important;
+  }
+
+  /* 상태 알약(활동중·재원…)이 한 글자씩 꺾이지 않게 */
+  .badge {
+    white-space: nowrap;
+  }
+
+  /* ---------- 1. 아동 축: 첫 줄 그룹 탭 셋, 둘째 줄 그 그룹의 화면 칩 ---------- */
+  #subnav-children:not([hidden]) {
+    display: block;
+    padding: var(--s1) var(--s2) 0;
+    overflow-x: visible;
+  }
+
+  #subnav-children .subnav__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  #subnav-children .subnav__list > li:not([hidden]) {
+    display: contents;
+  }
+
+  #subnav-children .subnav__list > li > .subnav__item {
+    flex: 1 1 0;
+    min-width: 0;
+    justify-content: center;
+    text-align: center;
+  }
+
+  #subnav-children .subnav__sub:not([hidden]) {
+    order: 1;
+    flex: 1 0 100%;
+    display: flex;
+    gap: 4px;
+    margin: var(--s1) calc(var(--s2) * -1) 0;
+    padding: 4px var(--s2);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    border-top: 1px solid var(--border);
+  }
+
+  #subnav-children .subnav__sub::before {
+    content: none;
+  }
+
+  /* 상세의 [← 목록으로] 는 늘 왼쪽 위 한 줄 */
+  .detail__head > .back {
+    flex: none;
+  }
+
+  .detail__head > .back + * {
+    flex-basis: 100%;
+  }
+
+  /* ---------- 2. 명단 3종: 표 대신 줄 목록 ---------- */
+  .table--roster {
+    display: block;
+    min-width: 0;
+  }
+
+  .table--roster thead {
+    display: none;
+  }
+
+  .table--roster tbody {
+    display: block;
+  }
+
+  .table--roster tr {
+    display: flex;
+    align-items: center;
+    gap: var(--s1);
+    min-height: 48px;
+    padding: 4px var(--s2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .table--roster tbody tr:last-child {
+    border-bottom: 0;
+  }
+
+  .table--roster td {
+    display: block;
+    padding: 0;
+    border: 0;
+    white-space: nowrap;
+  }
+
+  .table--roster tbody tr:last-child td {
+    border-bottom: 0;
+  }
+
+  .table--roster .roster__name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 500;
+  }
+
+  .table--roster .roster__name .namebtn {
+    min-height: 44px;
+    max-width: calc(100% - 2.2em - 4px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* 역할은 작은 회색 알약 */
+  .table--roster .roster__role {
+    padding: 0 8px;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    font-size: 12px;
+    line-height: 20px;
+    color: var(--text-muted);
+  }
+
+  .table--roster td:not(.roster__name):not(.roster__role):not(.roster__status) {
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+
+  .table--roster .roster__status {
+    margin-left: auto;
+  }
+
+  /* 전화·수정·삭제는 좁은 화면에서 뺀다 — 등록·수정은 PC 에서 */
+  .table--roster .roster__phone,
+  .table--roster .roster__actions {
+    display: none;
+  }
+
+  /* ---------- 3. 일지 목록: /m 모양 ---------- */
+  #view-journal-list .view__head {
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  #view-journal-list .toolbar {
+    flex-direction: column;
+    align-items: center;
+    gap: var(--s1);
+  }
+
+  /* ‹ 2026년 9월 ▾ › — 가운데 크게, 흰 상자 없이 */
+  #view-journal-list .period {
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--s1);
+  }
+
+  #view-journal-list .period .btn--icon {
+    border: 0;
+    background: none;
+    font-size: 22px;
+  }
+
+  /* [미분석 일괄 분석 N] / 모두 분석됨 — 알약 하나 */
+  #view-journal-list #journal-batch {
+    padding: 0 var(--s2);
+    border-radius: 999px;
+    font-size: 13px;
+  }
+
+  /* 카드 머리 — 날짜 크게, 작성자·역할·시간 한 줄, 수정·삭제는 오른쪽 */
+  .jcard__head {
+    flex-wrap: wrap;
+    align-items: center;
+    row-gap: 0;
+  }
+
+  .jcard__date {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .jcard__head .roletag {
+    padding: 0 8px;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    line-height: 20px;
+  }
+
+  .jcard__time {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .jcard__actions {
+    margin-left: auto;
+  }
+
+  /* ---------- 4. 스케줄: /m 달력 모양 ---------- */
+  .calendar {
+    gap: 2px;
+    background: none;
+    border: 0;
+    overflow: visible;
+  }
+
+  .calendar__weekday {
+    padding: 4px 0;
+    background: none;
+  }
+
+  .calendar__cell {
+    align-items: center;
+    justify-content: flex-start;
+    gap: 3px;
+    min-height: 52px;
+    padding: 6px 0 4px;
+    border-radius: var(--radius-sm);
+    text-align: center;
+  }
+
+  .calendar__cell--blank {
+    background: none;
+  }
+
+  .calendar__cell.is-selected {
+    background: var(--green-surface);
+    box-shadow: none;
+    outline: 2px solid var(--green);
+    outline-offset: -2px;
+  }
+
+  .calendar__day {
+    font-size: 15px;
+    color: var(--text);
+  }
+
+  /* 이름 글자 대신 점만(●■) — 잘린 이름보다 읽기 쉽다 */
+  .calendar__chips {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 2px;
+    max-width: 100%;
+  }
+
+  .calendar__chips .personchip > span:not(.personchip__dot) {
+    display: none;
+  }
+
+  .calendar__chips .personchip__dot {
+    width: 6px;
+    height: 6px;
+  }
+
+  .calendar__more {
+    font-size: 10px;
+    line-height: 6px;
+  }
+
+  /* 요약 — 큰 숫자 넷 + 한 줄 */
+  .statbar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--s1);
+    padding: var(--s2);
+  }
+
+  .statbar__item {
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    min-width: 0;
+  }
+
+  .statbar__value {
+    font-size: 20px;
+    white-space: nowrap;
+  }
+
+  .statbar__label {
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .statbar__roles {
+    grid-column: 1 / -1;
+    text-align: center;
+    font-size: 12px;
+  }
+
+  /* 미작성 줄 — [일지 작성] 글자가 꺾이지 않게 */
+  .missing__item {
+    flex-wrap: wrap;
+    align-items: center;
+    row-gap: 0;
+  }
+
+  .missing__item .linkbtn {
+    flex: none;
+    margin-left: auto;
+    white-space: nowrap;
+  }
+
+  .missing__who {
+    min-width: 0;
+  }
+
+  .missing__item > span:not([class]) {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  /* ---------- 5. 일지 작성: 저장 줄은 늘 손 닿는 곳 ---------- */
+
+  /* 종사자 작성 화면 — [저장]·[취소] 는 폼 카드 안 맨 아래(따라 붙지 않는다) */
+  .form--page .textarea {
+    min-height: 40dvh;
+  }
+
+  .form__actions--stick .btn {
+    flex: 1 1 0;
+  }
+
+  /* 봉사일지 모달 — 화면 안에 고정, 본문 칸은 모달 안에서 굴러가고 [저장]·[취소] 는 아래 고정 */
+  .modal:has(.modal__dialog--write) {
+    padding: var(--s2);
+  }
+
+  .modal__dialog--write {
+    max-height: calc(100dvh - var(--s2) * 2);
+    padding: var(--s2);
+  }
+
+  .modal__dialog--write .textarea {
+    min-height: 120px;
+    height: 32dvh;
+  }
+
+  .modal__actions--stick {
+    position: sticky;
+    bottom: calc(var(--s2) * -1);
+    z-index: 2;
+    margin: 0 calc(var(--s2) * -1) calc(var(--s2) * -1);
+    padding: var(--s1) var(--s2) var(--s2);
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+  }
+
+  .modal__actions--stick .btn {
+    flex: 1 1 0;
+  }
+}
+
+/* =========================================================
+   좁은 화면 후속 다듬기(실기기 2차) — 제목 줄 걷기, 전화 링크, 일지 머리 한 줄, 스케줄 /m 구성
+   ========================================================= */
+
+/* 전화 링크 — 넓은 화면에서도 글자 모양은 예전 그대로 */
+.roster__tel {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* 일괄 분석 + (좁은 화면) 일지 작성 — 넓은 화면에서는 버튼 하나라 모양 그대로 */
+.jtools {
+  display: contents;
+}
+
+/* 날짜 칸·건수는 좁은 화면에서만 */
+.dayplan__date {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  /* ---------- 3. 화면 제목 걷기 — 위치는 위 칩이 말해 준다 ---------- */
+  .view > .view__head .view__title {
+    display: none;
+  }
+
+  /* 제목 줄은 통째로 — 건수(N건·N명)도 좁은 화면에서는 뺀다. 점검 결과 한 줄(#syscheck-meta)만 남긴다. */
+  .view > .view__head:not(:has(#syscheck-meta)),
+  .view > .view__head--narrow-hide {
+    display: none;
+  }
+
+  .view > .view__head {
+    margin-bottom: var(--s1);
+  }
+
+  .view > .view__head .view__count {
+    font-size: 13px;
+  }
+
+  .view__count:not(#syscheck-meta) {
+    display: none;
+  }
+
+  /* ---------- 달 이동 줄(일지·스케줄 공통): 가운데 크게, 흰 상자 없이, 건수는 옆에 작게 ---------- */
+  .period--main {
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--s1);
+    width: 100%;
+  }
+
+  .period--main .btn--icon {
+    border: 0;
+    background: none;
+    font-size: 22px;
+  }
+
+  /* 달 입력칸 대신 달·날짜 고르기 버튼(/m 과 같은 판) */
+  .period--main .period__month {
+    display: none;
+  }
+
+  .period__pick {
+    min-height: 44px;
+    padding: 0 var(--s1);
+    border: 0;
+    background: none;
+    color: var(--text);
+    font: inherit;
+    font-size: 18px;
+    font-weight: 700;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  .period__clear {
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--surface-sunken);
+    color: var(--text-muted);
+    font-size: 18px;
+    cursor: pointer;
+  }
+
+  .period__count {
+    font-size: 13px;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  .period__count--range {
+    margin: 0;
+    text-align: center;
+  }
+
+  /* ---------- 1. 명단 — 전화번호 다시(누르면 전화), 안 들어가면 둘째 줄 오른쪽 ---------- */
+  .table--roster tr {
+    flex-wrap: wrap;
+    row-gap: 0;
+  }
+
+  .table--roster .roster__phone {
+    display: block;
+    /* 번호 한 개 폭 — 번호 없는 줄(-)도 상태 알약이 같은 자리에 선다 */
+    min-width: 104px;
+    margin-left: auto;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .table--roster .roster__tel {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 4px;
+    color: var(--green);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* 상태 알약과 전화 사이 */
+  .table--roster .roster__status + .roster__phone {
+    margin-left: var(--s1);
+  }
+
+  /* 한 줄에 안 들어가 둘째 줄로 내려간 번호는 오른쪽에(staff.js markWrappedPhones) */
+  .table--roster tr.is-wrapped .roster__phone {
+    flex: 1 0 100%;
+    margin-left: 0;
+  }
+
+  /* ---------- 2. 일지 목록 머리 — [일괄 분석 알약] [+ 일지 작성] 한 줄 ---------- */
+  .jtools {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--s1);
+    width: 100%;
+  }
+
+  /* ---------- 4. 스케줄 — /m 일정 탭 구성 ---------- */
+  #view-schedule:not([hidden]) {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* 요약 → 달 이동 → 역할·등록 → (미작성) → 달력 → 목록 */
+  #view-schedule .sched__stat {
+    order: 1;
+    margin-bottom: var(--s1);
+  }
+
+  #view-schedule .sched__toolbar {
+    order: 2;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  #view-schedule .sched__missing {
+    order: 3;
+  }
+
+  #view-schedule .sched__cal {
+    order: 4;
+  }
+
+  #view-schedule .sched__day {
+    order: 5;
+  }
+
+  #view-schedule .sched__toolbar .period--main {
+    flex: 1 0 100%;
+  }
+
+  #view-schedule #sched-role-filter {
+    flex: 1 1 auto;
+  }
+
+  #view-schedule #sched-role-filter .rolefilter__btn {
+    flex: 1 1 0;
+    padding: 0 var(--s1);
+    white-space: nowrap;
+  }
+
+  #view-schedule #sched-add-open {
+    flex: none;
+  }
+
+  /* 일정 줄 — 한 줄: 날짜 · 이름 · 시간 · 역할 · 연필 · × */
+  .dayplan__row {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 6px;
+    min-height: 44px;
+    padding: 0 0 0 var(--s1);
+  }
+
+  .dayplan__date {
+    display: inline;
+    order: 0;
+    flex: none;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .dayplan__row .personchip {
+    order: 1;
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+
+  .dayplan__row .personchip > span:last-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .dayplan__time {
+    order: 2;
+    flex: none;
+    font-size: 13px;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .dayplan__row .roletag {
+    order: 3;
+    padding: 0 6px;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    line-height: 18px;
+    white-space: nowrap;
+  }
+
+  .dayplan__actions {
+    order: 4;
+    display: flex;
+    flex: none;
+    gap: 0;
+    margin-left: auto;
+  }
+
+  /* 목록 카드 — 한 줄에 이름이 들어가게 안쪽 여백을 줄인다 */
+  #view-schedule .sched__day {
+    padding: var(--s2) var(--s1);
+  }
+
+  #view-schedule .sched__day .card__head {
+    padding: 0 var(--s1);
+  }
+
+  #view-schedule .dayplan {
+    gap: 4px;
+  }
+
+  .dayicon {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--text-muted);
+    cursor: pointer;
+  }
+
+  .dayicon--danger {
+    color: var(--danger);
+  }
+}
+
+/* =========================================================
+   좁은 화면 후속 3차 — 그룹 탭 고정, 작성 폼 세로 일렬, 겸직 알약
+   ========================================================= */
+@media (max-width: 720px) {
+  /* 그룹 탭 셋 — 고른 것과 상관없이 같은 폭·같은 자리. 고른 표시는 배경색만(굵기로 폭이 흔들리지 않게) */
+  #subnav-children .subnav__list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  #subnav-children .subnav__list > li > .subnav__item {
+    width: 100%;
+    padding: var(--s1) 4px;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  #subnav-children .subnav__sub:not([hidden]) {
+    grid-column: 1 / -1;
+  }
+
+  /* 작성 폼 — 기기 폭과 상관없이 칸을 세로 한 줄로 */
+  .form--page .form__row,
+  .modal__dialog--write .form__row {
+    flex-direction: column;
+    flex-wrap: nowrap;
+  }
+
+  .form--page .form__row .field,
+  .modal__dialog--write .form__row .field {
+    flex: none;
+    width: 100%;
+  }
+
+  .form--page .form__row .input,
+  .modal__dialog--write .form__row .input {
+    width: 100%;
+    min-width: 0;
+  }
+
+  /* 명단 역할 — 칸 자체는 알약이 아니고, 역할마다 알약 하나(겸직도 한 줄) */
+  .table--roster .roster__role {
+    display: flex;
+    gap: 4px;
+    padding: 0;
+    border: 0;
+  }
+
+  /* 한 줄에 "이름 · 알약(들) · 상태 · 전화" 가 360px 폭에서도 들어가게 사이를 줄인다 */
+  .table--roster tr {
+    column-gap: 6px;
+    padding-inline: 12px;
+  }
+
+  .table--roster .roster__phone {
+    min-width: 92px;
+    font-size: 13px;
+  }
+
+  .table--roster .roster__tel {
+    padding: 0 2px;
+  }
+
+  .table--roster .roster__status + .roster__phone {
+    margin-left: 0;
+  }
+
+  .roster__pill {
+    padding: 0 6px;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+}
+
+/* =========================================================
+   좁은 화면 4차 — 달·날짜 고르기 판, 작성 모달, 폼 칸 폭, 그룹 탭, 아동 상세
+   ========================================================= */
+
+/* 달·날짜 고르기 판 — /m(m.css .mpick) 과 같은 모양. 부품은 m/month_picker.js 한 벌 */
+.mpick {
+  width: 100%;
+  margin: 0 0 var(--s2);
+  padding: var(--s2);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.08);
+}
+
+.mpick__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--s1);
+}
+
+.mpick__title {
+  font-weight: 700;
+}
+
+.mpick__nav {
+  width: 44px;
+  height: 44px;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.mpick__all {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  margin-bottom: var(--s1);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.mpick__months {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+}
+
+.mpick__week,
+.mpick__days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  text-align: center;
+}
+
+.mpick__week {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.mpick__cell {
+  min-height: 44px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mpick__cell.is-on {
+  background: var(--green);
+  color: #fff;
+  font-weight: 700;
+}
+
+.mpick__cell.is-range {
+  border-radius: 0;
+  background: var(--green-surface);
+  color: var(--green);
+}
+
+.mpick__hint {
+  margin: 0 0 var(--s1);
+  font-size: 13px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* 오늘 — 테두리 + 아래 점(고른 칸이어도 보이게 흰 테두리) */
+.mpick__cell.is-today {
+  position: relative;
+  box-shadow: inset 0 0 0 2px var(--green);
+  font-weight: 700;
+}
+
+.mpick__cell.is-today::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 5px;
+  width: 4px;
+  height: 4px;
+  margin-left: -2px;
+  border-radius: 50%;
+  background: var(--green);
+}
+
+.mpick__cell.is-today.is-on {
+  box-shadow: inset 0 0 0 2px #fff, 0 0 0 2px var(--green);
+}
+
+.mpick__cell.is-today.is-on::after {
+  background: #fff;
+}
+
+/* 판 위 "오늘 9월 17일(목)" — 다른 달을 보고 있으면 눌러서 돌아온다 */
+.mpick__today {
+  display: block;
+  width: 100%;
+  margin: 0 0 var(--s1);
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  color: var(--green);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+}
+
+.mpick__today:not(.is-away) {
+  cursor: default;
+}
+
+.mpick__today.is-away {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+@media (max-width: 720px) {
+  /* ---------- 그룹 탭 — 세 칸 각 1/3 고정폭, 굵기·글자 모양은 고른 것과 같다(배경만 다름) ---------- */
+  #subnav-children .subnav__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+  }
+
+  #subnav-children .subnav__list > li > .subnav__item,
+  #subnav-children .subnav__list > li > .subnav__item.is-active {
+    display: flex;
+    flex: 0 0 33.3333%;
+    width: 33.3333%;
+    max-width: 33.3333%;
+    min-width: 0;
+    justify-content: center;
+    padding: var(--s1) 2px;
+    border: 0;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    -webkit-appearance: none;
+    appearance: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  #subnav-children .subnav__list > li > .subnav__item.is-active {
+    background-color: var(--green-surface);
+  }
+
+  #subnav-children .subnav__sub:not([hidden]) {
+    flex: 0 0 100%;
+  }
+
+  /* ---------- 작성 폼 — 칸 폭을 모두 같게(100%). iOS 의 날짜 칸이 제 폭을 고집하지 않게 ---------- */
+  .form--page .input,
+  .modal__dialog--write .input {
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .form--page .field,
+  .modal__dialog--write .field {
+    width: 100%;
+    min-width: 0;
+  }
+
+  @supports (-webkit-touch-callout: none) {
+    .form--page input[type="date"],
+    .modal__dialog--write input[type="date"] {
+      -webkit-appearance: none;
+      appearance: none;
+      min-height: 44px;
+      text-align: left;
+    }
+  }
+
+  /* ---------- 종사자 일지 작성 — 봉사일지 모달과 같은 모양(journals.js 가 모달 안으로 옮긴다) ---------- */
+  .jmodal__dialog {
+    margin: 0;
+  }
+
+  .jmodal__dialog .detail__head {
+    margin: 0;
+  }
+
+  .jmodal__dialog .back,
+  .jmodal__dialog .detail__meta {
+    display: none;
+  }
+
+  .jmodal__dialog .detail__who .view__title {
+    font-size: 18px;
+  }
+
+  .jmodal__dialog .form--page {
+    margin: 0;
+    padding: 0;
+    background: none;
+  }
+
+  .jmodal__dialog .form--page .textarea {
+    min-height: 120px;
+    height: 32dvh;
+  }
+
+  .jmodal__dialog .form__actions--stick {
+    position: sticky;
+    bottom: calc(var(--s2) * -1);
+    z-index: 2;
+    margin: 0 calc(var(--s2) * -1) calc(var(--s2) * -1);
+    padding: var(--s1) var(--s2) var(--s2);
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+  }
+
+  /* ---------- 아동 상세 ---------- */
+
+  /* 아동 정보 — 접힌 한 줄(학년·상태), [수정][삭제] 는 펼친 안 맨 아래 */
+  #child-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s1);
+  }
+
+  #child-info .card__head {
+    display: contents;
+  }
+
+  #child-info .info__toggle {
+    order: 0;
+  }
+
+  #child-info .info__grid {
+    order: 1;
+  }
+
+  #child-info .card__actions {
+    order: 2;
+    justify-content: flex-end;
+  }
+
+  #child-info:has(#child-info-toggle[aria-expanded="false"]) .card__actions {
+    display: none;
+  }
+
+  /* 영역별 관찰 — 읽기만. 편집으로 가는 길은 숨긴다 */
+  #go-edit,
+  .areaview__goedit {
+    display: none;
+  }
+
+  #eval-card .card__head {
+    flex-wrap: wrap;
+  }
+
+  #eval-card .info__toggle {
+    flex: 1 1 100%;
+  }
+}
+
+@media (max-width: 720px) {
+  /* 스케줄 — 판으로 고른 기간의 날짜 칸 */
+  #view-schedule .calendar__cell.is-inspan {
+    background: var(--green-surface);
+  }
+}
+
+@media (max-width: 720px) {
+  /* 접는 카드 둘(아동 정보·연간 평가) — 접힌 높이를 같게, 더 낮게 */
+  #child-info,
+  #eval-card {
+    padding-block: var(--s2);
+  }
+
+}
+
+@media (max-width: 720px) {
+  /* 그룹 탭 줄은 옆으로 밀리지 않는다(둘째 줄만 민다). iOS 가 글자를 키워 폭을 흔들지 않게 */
+  #subnav-children:not([hidden]) {
+    overflow-x: hidden;
+    overflow-x: clip;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+}
+
+/* =========================================================
+   5차(넓은 화면) — 일지 머리줄: 달·날짜 → 검색 → [일괄 분석] [+ 일지 작성]
+   ========================================================= */
+
+/* 고른 날짜·기간 알약(넓은 화면) */
+.jrange {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 36px;
+  padding: 0 4px 0 12px;
+  border-radius: 999px;
+  background: var(--green-surface);
+  color: var(--green);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.jrange[hidden] {
+  display: none;
+}
+
+.jrange__clear {
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: inherit;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.jrange__clear:hover {
+  background: rgb(0 0 0 / 0.06);
+}
+
+/* 검색어와 맞은 곳 — 포인트 색 옅은 바탕 + 밑줄 */
+.jmark {
+  padding: 0 1px;
+  border-radius: 2px;
+  background: var(--green-surface);
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--green);
+  text-underline-offset: 3px;
+}
+
+@media (min-width: 721px) {
+  .jtoolbar {
+    position: relative;
+    justify-content: flex-start;
+  }
+
+  .jsearch {
+    flex: 1 1 220px;
+    max-width: 360px;
+  }
+
+  .jsearch__input {
+    width: 100%;
+  }
+
+  /* [일괄 분석] 은 [+ 일지 작성] 바로 왼쪽 */
+  .jtoolbar #journal-batch {
+    margin-left: auto;
+  }
+
+  /* 달·날짜 판 — 달 이동 줄 아래에 떠 있게 */
+  .jtoolbar > .mpick {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    z-index: 15;
+    width: 340px;
+    margin: 0;
+  }
+}
+
+/* 5차(넓은 화면) — 스케줄 역할 거르기는 달력 상자 위쪽에 작게 */
+.calhead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s1) var(--s2);
+  margin-bottom: var(--s2);
+}
+
+@media (min-width: 721px) {
+  .calhead .calendar__legend {
+    margin: 0;
+  }
+}
+
+@media (min-width: 721px) and (pointer: fine) {
+  .calhead .rolefilter__btn {
+    min-height: 28px;
+    padding: 0 10px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 720px) {
+  .calhead {
+    display: contents;
+  }
+}
+
+/* 5차 — 연간 평가 ▸ 접기(넓은·좁은 화면 공통) */
+#eval-card:not(.is-open) > :not(.card__head),
+#eval-card:not(.is-open) #eval-actions {
+  display: none !important;
+}
+
+#eval-card:not(.is-open) .card__head {
+  margin-bottom: 0;
+}
+
+/* 연간 평가 편집 칸 — 글자 줄이 보기와 같은 폭·같은 자리(칸 안 여백만큼 밖으로 내민다) */
+@media (min-width: 721px) {
+  .evalareas .textarea {
+    width: calc(100% + 18px);
+    max-width: none;
+    margin-inline: -9px;
+    font-size: 14px;
+    line-height: 22.4px;
+  }
+}
+
+/* 연도 ‹ 2026년 › */
+.yearnav {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.yearnav__label {
+  min-width: 5.5em;
+  font-weight: 700;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.yearnav__btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+/* 5차 — 날짜별 편집 머리(미지정만 보기)·영역별 보기 [더 보기] */
+.obsbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s1) var(--s2);
+  margin: var(--s1) 0 var(--s2);
+}
+
+.obsbar__count {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.areaview__more {
+  align-self: flex-start;
+  margin-top: var(--s1);
+}
+
+/* 5차 — 예전 영역(지운 관찰 영역): 회색으로만 남긴다 */
+.area--old {
+  opacity: 0.7;
+  border-style: dashed;
+}
+
+.area__old {
+  margin-left: 4px;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.areaview--old .areaview__name,
+.evalarea--old .evalarea__name,
+.areasel--old {
+  color: var(--text-muted);
+}
+
+.areasel--old {
+  border-style: dashed;
+}
+
+.arealist {
+  margin-bottom: var(--s2);
+}
+
+.arearow__input {
+  flex: 1;
+  max-width: 24ch;
+}
+
+.arearow--old .rescat__name {
+  color: var(--text-muted);
+}
+
+/* 관찰 영역 — 설정 화면의 편집 폼(관리자 전용, 입구는 설정 하나) */
+.areaform--page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  max-width: 40rem;
+}
+
+/* 명단 등록·수정 — 다른 명단의 역할(겸직)은 잠긴 알약으로 보이기만 */
+.rolepick__locked {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px dashed var(--border-strong);
+  border-radius: 999px;
+  background: var(--surface-sunken);
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/* 달 이동 줄(넓은 화면) — 브라우저 기본 달력 칸은 숨기고 "2026년 9월 ▾" 글자 + 📅 하나 */
+@media (min-width: 721px) {
+  .period--main .period__month {
+    display: none;
+  }
+
+  .period__pick {
+    min-height: 36px;
+    padding: 0 var(--s1);
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: none;
+    color: var(--text);
+    font: inherit;
+    font-size: 16px;
+    font-weight: 700;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  .period__pick:hover {
+    background: var(--surface-sunken);
+  }
+
+  .period__clear {
+    width: 32px;
+    height: 32px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--surface-sunken);
+    color: var(--text-muted);
+    font-size: 16px;
+    cursor: pointer;
+  }
+
+  /* 기간은 알약(#journal-range-wide)이 맡는다 — 일지의 [×] 는 좁은 화면 전용 */
+  #month-pick-clear {
+    display: none;
+  }
+
+  .sched__toolbar {
+    position: relative;
+  }
+
+  .sched__toolbar > .mpick {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    z-index: 15;
+    width: 340px;
+    margin: 0;
+  }
+}
+
+/* 7차 — 자원 등록 모달(직접 입력 + 사진)·미분류함 섹션 */
+.resadd__direct {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  padding-bottom: var(--s2);
+  border-bottom: 1px solid var(--border);
+}
+
+.resadd__direct[hidden] {
+  display: none;
+}
+
+.resadd__label {
+  margin: 0;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.resadd__label:empty {
+  display: none;
+}
+
+.resadd__photo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+}
+
+.resinbox {
+  margin-top: var(--s3);
+}
+
+.resinbox #inbox-count {
+  display: none;
+}
+
+.resinbox__body {
+  padding: 0;
+}
+
+/* 미분류함 안의 두 칸 — 상자 안에 상자를 두지 않고, 자원사전 그룹 줄과 같은 들여쓰기 + 구분선 */
+.resinbox__body .rstat {
+  margin: 0;
+}
+
+.resinbox__body .rstat:empty {
+  display: none;
+}
+
+.resinbox__body .card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  margin: 0;
+  padding: var(--s2) var(--s2) var(--s2) var(--s4);
+  border: 0;
+  border-top: 1px solid var(--border);
+  border-radius: 0;
+  box-shadow: none;
+  background: none;
+}
+
+.resinbox__body .card__title {
+  margin: 0;
+  font-size: 14px;
+}
+
+.resinbox__body .form__hint,
+.resinbox__body .extract__note {
+  margin: 0;
+}
+
+@media (max-width: 720px), (pointer: coarse) {
+  .res__split {
+    width: 44px;
+    height: 44px;
+  }
+
+  .res__split::before {
+    content: none;
+  }
+}
+
+/* 7차 — 자원통계 머리줄·접는 섹션 */
+.rstat__toolbar {
+  justify-content: space-between;
+}
+
+.rstat__period .rstat__label {
+  min-width: 7em;
+  font-size: 18px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.rstat__section {
+  margin-bottom: var(--s2);
+}
+
+.rstat__head {
+  width: 100%;
+}
+
+.rstat__title {
+  margin: 0;
+}
+
+.rstat__head[aria-expanded="true"] {
+  margin-bottom: var(--s1);
+}
+
+.idle__more {
+  margin-top: var(--s1);
+}
+
+/* =========================================================
+   7차 — 도서관: 표 머리 거르기 · 분류 태그 · 등록 모달(두 단) · 찾아보기 한 줄
+   ========================================================= */
+
+/* 표 머리의 고르기 칸 — 머리 글자처럼 보이고, 거르고 있으면 초록 */
+.thfilter {
+  max-width: 100%;
+  padding: 2px 4px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: inherit;
+  cursor: pointer;
+}
+
+.thfilter:hover,
+.thfilter:focus-visible {
+  border-color: var(--border-strong);
+}
+
+.thfilter.is-on {
+  border-color: var(--green);
+  background: var(--green-surface);
+  color: var(--green);
+}
+
+/* 분류 태그 — 센터분류 왼쪽, 공식분류 오른쪽. 세로로 꺾이지 않는다 */
+.book__classes {
+  white-space: nowrap;
+}
+
+.book__classes .tag {
+  white-space: nowrap;
+}
+
+.book__classes .tag + .tag {
+  margin-left: 4px;
+}
+
+.tag--center {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.book__regno {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
+/* 등록 모달 */
+.bookform__ways {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  padding-bottom: var(--s2);
+  border-bottom: 1px solid var(--border);
+}
+
+.bookform__ways[hidden] {
+  display: none;
+}
+
+.bookform__other {
+  margin-top: var(--s1);
+}
+
+.bookform__waysrow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s1);
+}
+
+.bookform__waysrow .book__isbn-row {
+  flex: 1 1 18rem;
+  min-width: 0;
+}
+
+/* 좁은 모달에서 ISBN 칸이 밖으로 밀려나지 않게 */
+.bookform__waysrow .book__isbn-row .input {
+  min-width: 0;
+}
+
+.bookform__cols {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s3);
+}
+
+.bookform__part {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.bookform__legend {
+  margin-bottom: var(--s1);
+  font-weight: 700;
+}
+
+.bookform__part .input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.bookform__text {
+  min-height: 0;
+  max-width: none;
+}
+
+.bookform__lock {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s1);
+  margin: 0;
+}
+
+.bookform__lock[hidden] {
+  display: none;
+}
+
+.bookform .input:disabled {
+  color: var(--text);
+}
+
+@media (max-width: 720px) {
+  .bookform__cols {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* 책 찾아보기 — 제목·저자·[찾기] 한 줄, 결과는 아래 전폭 */
+.booksearch {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  margin-bottom: var(--s2);
+}
+
+.booksearch__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--s2);
+}
+
+.booksearch__row .field {
+  flex: 1 1 14rem;
+  min-width: 0;
+}
+
+.booksearch__row .input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+#book-find .bfind {
+  max-width: none;
+}
+
+/* =========================================================
+   9차 — 자원·도서 마무리 + 좁은 화면 자원편
+   ========================================================= */
+
+/* 모달 [닫기] — 좁은 화면은 우상단 × (44px). 넓은 화면은 글자 그대로 */
+.modal__closex {
+  display: none;
+}
+
+/* 줄 동작 버튼 — 넓은 화면은 글자, 좁은 화면은 아이콘 */
+.res__acticon {
+  display: none;
+}
+
+/* 연속 등록 줄 — [찾기]·[×] */
+.bqueue__acts {
+  display: flex;
+  gap: var(--s1);
+}
+
+.bqueue__drop {
+  min-width: 32px;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.bqueue__excluded {
+  margin: var(--s1) 0 0;
+}
+
+.bqueue__via {
+  display: flex;
+  flex: 1 1 100%;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s1);
+}
+
+.bqueue__via .input {
+  flex: 1 1 14rem;
+  min-width: 0;
+}
+
+.bqueue__same {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 32px;
+  font-size: 14px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.bimport__via .input {
+  max-width: 28rem;
+}
+
+/* 도서 좁은 화면 상세(넓은 화면에서는 .narrow-only 로 숨음) */
+.book__open {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-weight: 500;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.book__open[aria-expanded="true"] {
+  color: var(--green);
+}
+
+.book__detailrow[hidden] {
+  display: none !important;
+}
+
+.book__detail {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 4px var(--s2);
+  margin: 0;
+}
+
+.book__detail dt {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.book__detail dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.book__detailacts {
+  display: flex;
+  gap: var(--s1);
+  margin-top: var(--s2);
+}
+
+@media (max-width: 720px) {
+  .modal__head:has(.modal__close) {
+    position: relative;
+    min-height: 44px;
+    padding-right: 44px;
+  }
+
+  /* 모달 안쪽 여백만큼 모서리로 붙인다 */
+  .modal__close {
+    position: absolute;
+    top: calc(-1 * var(--s1));
+    right: calc(-1 * var(--s2));
+    display: inline-grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    padding: 0;
+    border: 0;
+    background: none;
+  }
+
+  .modal__closetext {
+    display: none;
+  }
+
+  .modal__closex {
+    display: inline;
+    font-size: 28px;
+    line-height: 1;
+    color: var(--text-muted);
+  }
+
+  /* 자원사전 — 한 줄(이름·별칭) + 아이콘 버튼 셋 */
+  .res {
+    gap: var(--s1);
+    padding: 0 0 0 var(--s2);
+  }
+
+  .res__main {
+    align-items: center;
+    overflow: hidden;
+  }
+
+  /* 이름이 먼저 — 별칭이 줄어들고, 이름은 넘칠 때만 말줄임 */
+  .res__name {
+    flex: 0 0 auto;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .res__auto {
+    display: none;
+  }
+
+  .res__aliastext {
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    font-size: 14px;
+    color: var(--text-muted);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .res__actions {
+    gap: 0;
+  }
+
+  .res__act {
+    display: inline-grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+  }
+
+  .res__acttext {
+    display: none;
+  }
+
+  .res__acticon {
+    display: inline-grid;
+  }
+
+  .res__reject {
+    margin-left: 0;
+  }
+
+  /* 연속 등록 줄 — 누르는 자리 44px */
+  .bqueue__drop {
+    min-width: 44px;
+  }
+
+  .bqueue__same {
+    min-height: 44px;
+  }
+
+  /* 도서관 — 등록번호·제목 한 줄, 누르면 상세. 거르기(분류·상태)는 머리줄에 그대로 */
+  .booktable,
+  .booktable thead,
+  .booktable tbody {
+    display: block;
+  }
+
+  .booktable thead tr {
+    display: flex;
+    gap: var(--s1);
+    padding: var(--s1) var(--s2);
+  }
+
+  .booktable thead th {
+    display: none;
+  }
+
+  .booktable thead th:nth-child(5),
+  .booktable thead th:nth-child(6) {
+    display: block;
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  /* 고르기 칸 — 글자에 ▾ 가 있어 기본 화살표는 뺀다. 칸 테두리로 누르는 자리임을 보인다 */
+  .booktable .thfilter {
+    width: 100%;
+    min-height: 44px;
+    padding: 0 var(--s1);
+    border-color: var(--border);
+    appearance: none;
+  }
+
+  .booktable tr.book__row {
+    display: flex;
+    align-items: center;
+    gap: var(--s2);
+    padding: 0 var(--s2);
+    border-top: 1px solid var(--border);
+  }
+
+  .booktable tr.book__row td {
+    display: none;
+  }
+
+  .booktable tr.book__row td.book__regno,
+  .booktable tr.book__row td.book__title {
+    display: block;
+    padding: 0;
+    border: 0;
+  }
+
+  .booktable tr.book__row td.book__regno {
+    flex: 0 0 auto;
+    min-width: 2.5em;
+  }
+
+  .booktable tr.book__row td.book__title {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .booktable tr.book__detailrow {
+    display: block;
+    background: var(--surface-sunken);
+  }
+
+  .booktable tr.book__detailrow td {
+    display: block;
+    padding: var(--s2);
+    border: 0;
+  }
+
+  .book__detailacts .btn {
+    min-height: 44px;
+  }
+}
+
+/* =========================================================
+   10차 — 설정 서브탭 그룹(문의함 / 시스템 관리 / 로그) · 아동 그룹 탭 첫 줄 높이
+   ========================================================= */
+
+/* 넓은 화면: 문의함은 보통 항목, 나머지는 작은 그룹 제목 + 항목 */
+@media (min-width: 721px) {
+  #subnav-settings .sgroup__chip[data-sgroup-chip] {
+    display: none;
+  }
+
+  #subnav-settings .sgroup__title {
+    margin: var(--s2) 0 4px var(--s1);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: var(--text-faint);
+  }
+
+  #subnav-settings .sgroup__items {
+    margin: 0;
+    border-left: 0;
+  }
+
+  #subnav-settings .subnav__item--sub {
+    padding-left: var(--s2);
+    font-size: inherit;
+  }
+}
+
+@media (max-width: 720px) {
+  /* 아동 그룹 탭 — 둘째 줄(화면 칩)이 있든 없든 첫 줄 높이는 같다(아래 여백을 탭 쪽에 둔다) */
+  #subnav-children .subnav__list > li > .subnav__item {
+    margin-bottom: var(--s1);
+  }
+
+  #subnav-children .subnav__sub:not([hidden]) {
+    margin-top: 0;
+  }
+
+  /*
+   * 설정 — 종사자 폰은 평평한 칩 셋: 문의함 · 계정 관리 · 시스템 점검(등급이 되는 것만).
+   * 봉사자 설정·관찰 영역·변경 기록·관문 경고·동의서(data-pc-only)는 PC 전용이라 숨긴다. 그룹 칩도 없다.
+   */
+  #subnav-settings:not([hidden]) {
+    display: block;
+    padding: var(--s1) var(--s2) 0;
+    overflow-x: hidden;
+    overflow-x: clip;
+  }
+
+  #subnav-settings .subnav__list {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 4px;
+  }
+
+  #subnav-settings .sgroup:not([hidden]),
+  #subnav-settings .sgroup__items,
+  #subnav-settings .sgroup__items > li:not([hidden]) {
+    display: contents;
+  }
+
+  #subnav-settings .sgroup__items::before {
+    content: none;
+  }
+
+  #subnav-settings [data-pc-only],
+  #subnav-settings .sgroup__title,
+  #subnav-settings .sgroup__chip[data-sgroup-chip] {
+    display: none !important;
+  }
+
+  #subnav-settings .subnav__item[data-setting] {
+    display: flex;
+    flex: 1 1 0;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-width: 0;
+    margin: 0 0 var(--s1);
+    padding: var(--s1) 2px;
+    font-size: 15px;
+    font-weight: 600;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* =========================================================
+   자원통계 — 자원별 표·오래 안 쓴 자원: 칸 글자는 한 줄(꺾지 않음), 넘치면 그 상자만 옆으로
+   (넓은·좁은 화면 공통. 표는 .table-scroll 이 이미 overflow-x: auto)
+   ========================================================= */
+.rstat__table th,
+.rstat__table td {
+  white-space: nowrap;
+}
+
+#rstat-resources .table-scroll,
+#rstat-idle .table-scroll {
+  overscroll-behavior-x: contain;
+}
+
+/* =========================================================
+   설정 › 동의서 (documents.js) — 미리보기와 문구 수정
+   ========================================================= */
+.docs__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s1);
+  margin-bottom: var(--s2);
+}
+
+.docs__lead {
+  max-width: var(--reading);
+  margin: 0 0 var(--s2);
+}
+
+.docs__tabs {
+  margin-bottom: var(--s2);
+}
+
+/* 미리보기·고치기는 다른 설정 화면과 같은 본문 폭(.main__inner) */
+.docs__preview {
+  overflow-x: auto;
+}
+
+/* 일지 쓰기 칸(.form--page .textarea 320px)과 달리 문구 칸은 글 길이만큼(지원 안 하는 브라우저는 documents.js 의 rows) */
+.docs__editor .textarea {
+  min-height: 44px;
+  max-height: 24rem;
+  field-sizing: content;
+}
+
+.docs__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  margin: 0;
+  padding: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.docs__legend {
+  padding: 0 var(--s1);
+  font-weight: 700;
+}
+
+.docs__rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
+.docs__row {
+  display: grid;
+  grid-template-columns: minmax(8rem, 12rem) 1fr;
+  gap: var(--s1) var(--s2);
+  padding-bottom: var(--s2);
+  border-bottom: 1px dashed var(--border);
+}
+
+.docs__rowtools {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.docs__rowtools:empty {
+  display: none;
+}
+
+.docs__check {
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+  min-height: 32px;
+}
+
+.docs__tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+}
+
+.docs__editor > #docs-edit-consent,
+.docs__editor > #docs-edit-policy,
+.docs__editor > #docs-edit-center {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
+.docs__editor > [hidden] {
+  display: none !important;
+}
+
+/* 저장 줄은 편집 카드 맨 아래 소속 — 화면에 고정하지 않는다(스크롤을 따라와 본문을 가리던 것, 일지 작성 폼과 같은 수리).
+   세 탭(동의서·처리방침·센터 이름)이 같은 줄을 쓴다 */
+.docs__save {
+  flex-wrap: wrap;
+  padding-top: var(--s2);
+  border-top: 1px solid var(--border);
+}
+
+.docs__reset {
+  margin-left: auto;
+}
+
+@media (max-width: 720px) {
+  .docs__actions .btn,
+  .docs__check {
+    min-height: 44px;
+  }
+
+  .docs__row {
+    grid-template-columns: 1fr;
+  }
+
+  .docs__tools .linkbtn,
+  .docs__rowtools .linkbtn {
+    min-height: 44px;
+  }
+}
+
+/* =========================================================
+   앱 화면을 그대로 인쇄할 때 — 탭·메뉴·버튼은 빼고 흰 바탕·검정 글자
+   (정식 인쇄물은 /print 가 따로 만든다)
+   ========================================================= */
+@media print {
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  .appbar,
+  .rail,
+  .subnav,
+  .tabbar,
+  .snackbar,
+  .totop,
+  .btn,
+  .linkbtn,
+  .card__actions,
+  .modal {
+    display: none !important;
+  }
+
+  /* @page 여백은 0(doc.css — 머리글·바닥글 자리 없앰). 종이 여백은 여기서, 쪽마다 되풀이 */
+  .main {
+    padding: 12mm 14mm;
+    overflow: visible;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+
+  .main__inner {
+    max-width: none;
+  }
+
+  .card {
+    border-color: #999;
+    box-shadow: none;
+    break-inside: avoid;
+  }
+}

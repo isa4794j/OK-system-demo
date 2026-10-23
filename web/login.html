@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>로그인 · OK 시스템</title>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="OK 시스템" />
+    <link rel="stylesheet" href="/assets/tokens.css" />
+    <link rel="stylesheet" href="/assets/style.css" />
+  </head>
+  <body>
+    <!--
+      로그인은 index.html 과 다른 페이지다.
+      index.html 은 열리자마자 화면 모듈을 전부 불러오고 API 를 예닐곱 개 때린다.
+      로그인 전에 그 파일을 열면 아직 답할 수 없는 요청이 우수수 나간다.
+    -->
+    <main class="login">
+      <div class="login__box">
+        <h1 class="login__brand">OK 시스템</h1>
+
+        <p class="login__error" id="login-error" hidden></p>
+
+        <div class="state" id="login-state">불러오는 중…</div>
+
+        <!-- ① 이름 + 비밀번호 -->
+        <form class="form login__form" id="form-password" hidden>
+          <p class="login__lead">이름과 비밀번호를 넣어 주세요.</p>
+
+          <div class="field">
+            <label class="field__label" for="pw-name">이름</label>
+            <input
+              type="text"
+              class="input"
+              id="pw-name"
+              maxlength="100"
+              autocomplete="username"
+              required
+            />
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="pw-password">비밀번호</label>
+            <input
+              type="password"
+              class="input"
+              id="pw-password"
+              maxlength="200"
+              autocomplete="current-password"
+              required
+            />
+          </div>
+
+          <div class="form__actions">
+            <button type="submit" class="btn btn--primary" id="pw-submit">로그인</button>
+          </div>
+
+          <p class="login__switch">
+            <button type="button" class="linkbtn" id="go-code">처음이신가요? 초대코드로 시작</button>
+          </p>
+        </form>
+
+        <!-- ② 이름 + 초대코드 (첫 로그인) -->
+        <form class="form login__form" id="form-code" hidden>
+          <p class="login__lead">
+            받으신 <b>초대코드(숫자 여섯 자리, 123-456 모양)</b>를 넣어 주세요. 다음 화면에서 쓸 비밀번호를 정합니다.
+          </p>
+
+          <div class="field">
+            <label class="field__label" for="code-name">이름</label>
+            <input
+              type="text"
+              class="input"
+              id="code-name"
+              maxlength="100"
+              autocomplete="off"
+              autocapitalize="off"
+              autocorrect="off"
+              spellcheck="false"
+              required
+            />
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="code-code">초대코드</label>
+            <input
+              type="text"
+              class="input login__code"
+              id="code-code"
+              maxlength="12"
+              inputmode="numeric"
+              pattern="[0-9]{3}-?[0-9]{3}"
+              placeholder="000-000"
+              autocomplete="one-time-code"
+              required
+            />
+          </div>
+
+          <div class="form__actions">
+            <button type="submit" class="btn btn--primary" id="code-submit">다음</button>
+          </div>
+
+          <p class="login__switch">
+            <button type="button" class="linkbtn" id="go-password">비밀번호로 로그인</button>
+          </p>
+        </form>
+
+        <!-- ③ 비밀번호 정하기 -->
+        <form class="form login__form" id="form-new" hidden>
+          <p class="login__lead" id="new-lead"></p>
+
+          <div class="field">
+            <label class="field__label" for="new-password">새 비밀번호</label>
+            <input
+              type="password"
+              class="input"
+              id="new-password"
+              maxlength="200"
+              autocomplete="new-password"
+              required
+            />
+            <p class="form__hint">8자 이상이면 됩니다. 기호나 대문자를 섞지 않아도 됩니다.</p>
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="new-again">한 번 더</label>
+            <input
+              type="password"
+              class="input"
+              id="new-again"
+              maxlength="200"
+              autocomplete="new-password"
+              required
+            />
+          </div>
+
+
+          <!-- 개인정보 처리 안내 — 문구는 설정(처리방침)에서 온다. 동의는 필수 -->
+          <div class="consent">
+            <p class="consent__title">개인정보 처리 안내</p>
+            <!-- 맨 위 요약 세 줄(페르소나 리뷰) — 전문은 아래 그대로 -->
+            <ol class="consent__summary">
+              <li>① 활동 기록과 개인정보를 수집합니다.</li>
+              <li>② 기록 분석 시 이름을 가명으로 바꿔 외부 AI에 보냅니다.</li>
+              <li>③ 내 정보는 언제든 열람·정정을 요청할 수 있습니다.</li>
+            </ol>
+            <p class="consent__text" id="new-notice">불러오는 중…</p>
+            <!-- 전문은 이 자리에서 펼친다 — 다른 화면으로 가면 적던 코드·비밀번호가 사라진다 -->
+            <button type="button" class="linkbtn consent__link" data-policy-toggle aria-expanded="false">개인정보 처리방침 전문 보기</button>
+            <div class="consent__full" data-policy-full hidden></div>
+            <label class="consent__check">
+              <input type="checkbox" id="new-agree" required />
+              <span id="new-agree-text">위 안내를 읽었으며 동의합니다.</span>
+            </label>
+          </div>
+
+          <div class="form__actions">
+            <button type="submit" class="btn btn--primary" id="new-submit">정하고 시작</button>
+            <button type="button" class="btn" id="new-cancel">취소</button>
+          </div>
+        </form>
+
+        <!-- ⑤ 개인정보 처리 동의 — 동의 기록이 없는 기존 계정이 로그인한 직후 한 번 -->
+        <form class="form login__form" id="form-consent" hidden>
+          <p class="login__lead" id="consent-lead">시작하기 전에 개인정보 처리 안내를 확인해 주세요.</p>
+
+          <!-- 개인정보 처리 안내 — 문구는 설정(처리방침)에서 온다. 동의는 필수 -->
+          <div class="consent">
+            <p class="consent__title">개인정보 처리 안내</p>
+            <!-- 맨 위 요약 세 줄(페르소나 리뷰) — 전문은 아래 그대로 -->
+            <ol class="consent__summary">
+              <li>① 활동 기록과 개인정보를 수집합니다.</li>
+              <li>② 기록 분석 시 이름을 가명으로 바꿔 외부 AI에 보냅니다.</li>
+              <li>③ 내 정보는 언제든 열람·정정을 요청할 수 있습니다.</li>
+            </ol>
+            <p class="consent__text" id="consent-notice">불러오는 중…</p>
+            <!-- 전문은 이 자리에서 펼친다 — 다른 화면으로 가면 적던 코드·비밀번호가 사라진다 -->
+            <button type="button" class="linkbtn consent__link" data-policy-toggle aria-expanded="false">개인정보 처리방침 전문 보기</button>
+            <div class="consent__full" data-policy-full hidden></div>
+            <label class="consent__check">
+              <input type="checkbox" id="consent-agree" required />
+              <span id="consent-agree-text">위 안내를 읽었으며 동의합니다.</span>
+            </label>
+          </div>
+
+          <div class="form__actions">
+            <button type="submit" class="btn btn--primary" id="consent-submit">동의하고 시작</button>
+            <button type="button" class="btn" id="consent-logout">로그아웃</button>
+          </div>
+        </form>
+
+        <!-- ④ 최초 관리자 등록 (계정이 0개일 때만) -->
+        <form class="form login__form" id="form-boot" hidden>
+          <h2 class="card__title">첫 관리자를 정합니다</h2>
+          <p class="login__lead" id="boot-lead">
+            아직 계정이 하나도 없습니다. 명단에서 관리자를 맡을 분을 고르고 비밀번호를 정해 주세요.
+            <b>이 화면은 계정이 하나라도 생기면 다시 열리지 않습니다.</b>
+          </p>
+
+          <div class="field" id="boot-pick">
+            <label class="field__label" for="boot-who">누가 관리자입니까</label>
+            <select class="input" id="boot-who"></select>
+          </div>
+
+          <!-- 명단이 비어 있을 때 — 첫 종사자를 여기서 바로 넣고, 그 사람이 관리자가 된다 -->
+          <fieldset class="boot__new" id="boot-new" hidden>
+            <legend class="field__label">첫 종사자 등록</legend>
+            <div class="field">
+              <label class="field__label" for="boot-name">이름</label>
+              <input
+                type="text"
+                class="input"
+                id="boot-name"
+                maxlength="100"
+                autocomplete="name"
+                placeholder="예: 김은정"
+              />
+              <p class="form__hint">이 이름이 로그인 이름이 됩니다.</p>
+            </div>
+            <div class="field">
+              <label class="field__label" for="boot-role">직급</label>
+              <select class="input" id="boot-role"></select>
+            </div>
+            <p class="notice" id="boot-preview" hidden></p>
+          </fieldset>
+
+          <div class="field">
+            <label class="field__label" for="boot-password">비밀번호</label>
+            <input
+              type="password"
+              class="input"
+              id="boot-password"
+              maxlength="200"
+              autocomplete="new-password"
+              required
+            />
+            <p class="form__hint">8자 이상.</p>
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="boot-again">한 번 더</label>
+            <input
+              type="password"
+              class="input"
+              id="boot-again"
+              maxlength="200"
+              autocomplete="new-password"
+              required
+            />
+          </div>
+
+          <div class="form__actions">
+            <button type="submit" class="btn btn--primary" id="boot-submit">관리자로 시작</button>
+          </div>
+        </form>
+
+        <p class="login__foot"><a href="/privacy">개인정보 처리방침</a></p>
+      </div>
+    </main>
+
+    <div class="snackbar" id="snackbar" role="status" aria-live="polite" hidden></div>
+
+    <script type="module" src="/assets/login.js"></script>
+  </body>
+</html>

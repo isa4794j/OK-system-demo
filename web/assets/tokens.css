@@ -1,0 +1,65 @@
+/* =========================================================
+   OK 시스템 — 디자인 토큰과 아주 기본적인 것
+
+   PC 화면(style.css)과 봉사자 폰 화면(m.css)이 같이 쓴다.
+   색과 여백을 두 곳에 적으면 언젠가 갈라지므로 여기 한 벌만 둔다.
+   ========================================================= */
+
+:root {
+  /* 포인트 색 — 이 하나만 쓴다 */
+  --green: #2d5016;
+  --green-hover: #24400f;
+  --green-surface: #eef2e8; /* 선택된 항목 배경 (녹색을 아주 옅게) */
+
+  /* 회색 계열 */
+  --text: #1c1b1f;
+  --text-muted: #5f5c62;
+  --text-faint: #8b8890;
+  /* 아직 못 쓰는 메뉴용. 흐리지만 무슨 글자인지는 읽히는 선. */
+  --text-disabled: #a5a3a8;
+  --surface: #ffffff;
+  --surface-sunken: #f7f7f5;
+  --border: #e3e2df;
+  --border-strong: #d0cfcb;
+
+  /* 상태색 (예외) — 오류와 "처리 필요" 표시에만 쓴다 */
+  --danger: #b3261e;
+  --warn: #c08a1e;
+  --warn-surface: #fdf6e3;
+  --warn-text: #7a5610;
+
+  /* 8의 배수 여백 */
+  --s1: 8px;
+  --s2: 16px;
+  --s3: 24px;
+  --s4: 32px;
+  --s5: 40px;
+
+  /* 읽는 글의 한 줄 최대 너비.
+     ch 를 쓰면 안 된다. ch 는 숫자 "0" 하나의 너비(14px 기준 약 7.8px)라
+     한글(약 12.9px)에는 맞지 않는다. 60ch 는 한글로 36자밖에 안 되고,
+     넓은 카드 안에서는 절반만 차고 오른쪽이 비어 보인다.
+     rem 으로 두면 브라우저 글자 크기를 키워도 한 줄 글자 수가 유지된다.
+     46rem ≈ 736px ≈ 한글 57자. */
+  --reading: 46rem;
+
+  --radius: 12px;
+  --radius-sm: 8px;
+
+  --rail-w: 88px;
+  --subnav-w: 200px;
+  /* 좁은 화면의 아래 탭바 높이(안전 영역 빼고). 맨 위로·스낵바가 이만큼 비켜 선다 */
+  --tabbar-h: 56px;
+  --appbar-h: 56px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* hidden 속성이 항상 이기게 한다.
+   display를 지정한 클래스(.form 등)가 붙으면 브라우저 기본값인
+   [hidden] { display: none } 을 눌러버려서 숨겨지지 않는다. */
+[hidden] {
+  display: none !important;
+}

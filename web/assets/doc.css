@@ -1,0 +1,305 @@
+/* =========================================================
+   문서 — 관찰일지·평가서·동의서·처리방침 (doc_render.js)
+   화면에서는 A4 종이처럼, 인쇄에서는 흰 바탕·검정 글자.
+   print.html · privacy.html · 설정의 동의서 미리보기가 같이 쓴다.
+   ========================================================= */
+
+.doc {
+  --doc-line: #1c1b1f;
+  --doc-soft: #5f5c62;
+  --doc-head: #f1f1ee;
+  color: #1c1b1f;
+  font-size: 13px;
+  line-height: 1.6;
+  /* 한국어 문서 — 낱말(띄어쓰기) 단위로 꺾는다. 긴 낱말만 칸 끝에서 자른다 */
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.doc table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.doc th,
+.doc td {
+  border: 1px solid var(--doc-line);
+  padding: 6px 8px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.doc th {
+  background: var(--doc-head);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* ---------- 머리: 가운데 제목 + 오른쪽 결재란 ---------- */
+
+.doc__head {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.doc__title {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 800;
+  text-align: center;
+  letter-spacing: 0.06em;
+  text-wrap: balance;
+}
+
+.doc__title--plain {
+  margin-bottom: 16px;
+  font-size: 22px;
+  letter-spacing: 0;
+}
+
+/* 결재란 — 두 칸 폭을 고정으로 같게(글자 길이에 따라 벌어지지 않게) */
+.doc .doc__sign {
+  justify-self: end;
+  table-layout: fixed;
+  width: calc(26px + 2 * 84px);
+}
+
+.doc .doc__sign th,
+.doc .doc__sign td {
+  padding: 2px 6px;
+  text-align: center;
+  font-size: 12px;
+}
+
+.doc .doc__sign th:not(.doc__sign-label),
+.doc .doc__sign-cell {
+  width: 84px;
+}
+
+.doc .doc__sign-label {
+  width: 26px;
+  padding: 2px 4px;
+  line-height: 1.8;
+  vertical-align: middle;
+}
+
+.doc .doc__sign-cell {
+  height: 64px;
+}
+
+/* ---------- 정보 표 ---------- */
+
+.doc__info {
+  margin-bottom: 16px;
+}
+
+.doc__info th {
+  width: 14%;
+  text-align: center;
+}
+
+.doc__info td {
+  width: 36%;
+}
+
+/* ---------- 내용부: 왼쪽 영역명 + 오른쪽 내용 ---------- */
+
+.doc__body th.doc__area {
+  width: 18%;
+  white-space: normal;
+  text-align: center;
+  vertical-align: middle;
+  word-break: keep-all;
+}
+
+/* 날짜 | [역할] | 글 — 글이 길어 꺾여도 글 칸 안에서만 꺾인다 */
+.doc__line {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  gap: 0 6px;
+  margin: 0 0 4px;
+}
+
+.doc__line:last-child,
+.doc__para:last-child {
+  margin-bottom: 0;
+}
+
+.doc__date {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+  color: var(--doc-soft);
+}
+
+.doc__tag {
+  flex: none;
+  color: var(--doc-soft);
+}
+
+.doc__text {
+  min-width: 0;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.doc__para {
+  margin: 0 0 8px;
+  white-space: pre-line;
+}
+
+.doc__para--strong {
+  font-weight: 700;
+}
+
+.doc__empty {
+  margin: 0;
+  color: var(--doc-soft);
+}
+
+.doc__foot {
+  margin-top: 28px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+/* ---------- 동의서 ---------- */
+
+.doc__intro {
+  margin: 0 0 16px;
+  white-space: pre-line;
+}
+
+.doc__section {
+  margin-bottom: 16px;
+}
+
+.doc__section-title {
+  margin: 0 0 6px;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.doc__rows th {
+  width: 24%;
+  white-space: normal;
+  word-break: keep-all;
+}
+
+.doc__rows td {
+  white-space: pre-line;
+}
+
+.doc__choice {
+  display: flex;
+  justify-content: flex-end;
+  gap: 24px;
+  margin: 6px 0 0;
+  font-weight: 700;
+}
+
+.doc__notes,
+.doc__confirm {
+  margin: 0 0 12px;
+  white-space: pre-line;
+}
+
+.doc__dateline {
+  margin: 20px 0;
+  text-align: center;
+  white-space: pre;
+}
+
+.doc__signs {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.doc__signs p {
+  margin: 0;
+  white-space: pre;
+}
+
+.doc__addressee {
+  margin: 28px 0 0;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.doc__section--plain {
+  margin-bottom: 20px;
+}
+
+/* ---------- 좁은 화면(보기 전용) ---------- */
+
+@media screen and (max-width: 720px) {
+  .doc__head {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+
+  .doc__head-side {
+    display: none;
+  }
+
+  .doc .doc__sign {
+    justify-self: center;
+  }
+
+  .doc__body th.doc__area {
+    width: 30%;
+  }
+
+  .doc__signs p,
+  .doc__dateline {
+    white-space: pre-line;
+  }
+}
+
+/* ---------- 인쇄: A4 — 항목 중간에서 안 끊기게 ---------- */
+
+/*
+ * 페이지 여백을 0 으로 둔다 — 브라우저 머리글·바닥글(날짜·제목·주소)은 이 여백 안에 찍히므로
+ * 여백이 없으면 찍을 자리가 없다(Chrome·Edge). 종이 여백은 .paper 의 안쪽 여백이 맡고,
+ * 페이지마다 되풀이되게 box-decoration-break: clone. 그래도 찍히는 브라우저는 인쇄 화면의 안내 한 줄.
+ */
+@page {
+  size: A4;
+  margin: 0;
+}
+
+@media print {
+  .doc {
+    --doc-head: #f1f1ee;
+    font-size: 10.5pt;
+  }
+
+  .doc th {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .doc__head,
+  .doc__info,
+  .doc__line,
+  .doc__section,
+  .doc__end,
+  .doc__rows tr,
+  .doc__body tr:not(.doc__row--lines) {
+    break-inside: avoid;
+  }
+
+  .doc__section-title {
+    break-after: avoid;
+  }
+
+  .doc__foot {
+    break-before: avoid;
+  }
+}
