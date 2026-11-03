@@ -23,6 +23,7 @@ import {
 } from "../lib/permission.ts";
 import { hashSecret, makeInviteCode } from "../lib/password.ts";
 import type { Role, StaffStatus } from "./staff.ts";
+import { DEMO_ACCOUNTS } from "../api/demo_guard.ts";
 
 /** 초대코드가 살아 있는 기간. 격주로 오는 봉사자도 받을 수 있게 넉넉히 둔다. */
 export const INVITE_TTL_MS = 30 * 24 * 60 * 60 * 1000;
@@ -427,15 +428,28 @@ export async function markLoginSuccess(staffId: string, rehash?: string): Promis
  * 잠긴 뒤에는 맞는 값을 넣어도 시간이 지나야 열린다 — 그게 자물쇠의 뜻이다.
  */
 export async function markLoginFailure(account: AccountSecret): Promise<void> {
-  const failed = account.failed_attempts + 1;
-  const changes: Record<string, unknown> = { failed_attempts: failed };
-  if (failed >= MAX_FAILED) {
-    changes.locked_until = new Date(Date.now() + LOCK_MS).toISOString();
-    changes.failed_attempts = 0;
-  }
+  const changes = failureChanges(account);
+  if (!changes) return;
 
   const { error } = await getClient().from("staff").update(changes).eq("id", account.id);
   if (error) console.error("[markLoginFailure]", error.message);
+}
+
+/**
+ * 실패 한 번에 staff 행에 쓸 값. null 이면 아무것도 쓰지 않는다.
+ * 공개 데모 계정은 세지도 잠그지도 않는다 — 한 방문자의 오타로 다른 방문자가 15분간
+ * 못 들어오면 안 된다. 실패 기록은 호출하는 쪽의 로그인 기록(recordLogin)이 따로 남긴다.
+ */
+export function failureChanges(
+  account: Pick<AccountSecret, "login_name" | "failed_attempts">,
+  now: number = Date.now(),
+): Record<string, unknown> | null {
+  if (DEMO_ACCOUNTS.includes(account.login_name)) return null;
+  const failed = account.failed_attempts + 1;
+  if (failed >= MAX_FAILED) {
+    return { failed_attempts: 0, locked_until: new Date(now + LOCK_MS).toISOString() };
+  }
+  return { failed_attempts: failed };
 }
 
 /* ---------- 계정 설정 ---------- */
