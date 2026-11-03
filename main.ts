@@ -7,6 +7,7 @@
 import { serveDir } from "@std/http/file-server";
 import { fromFileUrl } from "@std/path";
 import { routeApi } from "./api/mod.ts";
+import { demoRefusal } from "./api/demo_guard.ts";
 import { checkAccess, isEnforcing, resolveSession, toRequestUser } from "./api/guard.ts";
 import { runWithUser } from "./lib/request_context.ts";
 import { drainBeforeExit } from "./lib/background.ts";
@@ -58,6 +59,10 @@ async function handleApi(req: Request, pathname: string): Promise<Response | nul
 
   const blocked = await checkAccess(req, pathname, account);
   if (blocked) return blocked;
+
+  // 데모 전용 — 계정·비밀번호·문구 쓰기를 막는다(api/demo_guard.ts)
+  const demoBlocked = demoRefusal(req, pathname, account?.login_name ?? null);
+  if (demoBlocked) return demoBlocked;
 
   const user = found
     ? toRequestUser(found.account, { id: found.session_id, active_role: found.active_role })

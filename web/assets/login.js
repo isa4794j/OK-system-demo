@@ -18,11 +18,11 @@
  * 세션 쿠키는 HttpOnly 라 이 파일이 읽을 수 없다 — 읽을 일도 없다.
  */
 import { clearAll as clearSnapshots } from "./m/store.js";
-import { DEMO_NOTICE } from "./demo_notice.js";
+import { DEMO_LOGIN_NOTICE } from "./demo_notice.js";
 
 // 데모 안내 — 어느 모습(비밀번호·초대코드·부팅)이든 늘 맨 위에 한 줄.
 const demoNote = document.getElementById("login-demo");
-if (demoNote) demoNote.textContent = DEMO_NOTICE;
+if (demoNote) demoNote.textContent = DEMO_LOGIN_NOTICE;
 
 const el = {
   state: document.getElementById("login-state"),
