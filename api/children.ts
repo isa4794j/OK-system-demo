@@ -31,6 +31,9 @@ import {
   listChildren,
   updateChild,
 } from "../db/children.ts";
+import { getSetting } from "../db/settings.ts";
+import { atLeast, type Level } from "../lib/permission.ts";
+import { currentUser } from "../lib/request_context.ts";
 
 const NAME_MAX = 100;
 const SHORT_MAX = 200;
@@ -291,14 +294,44 @@ export async function handleChildRecordsCount(id: string): Promise<Response> {
 
 /* ---------- DELETE /api/children/:id ---------- */
 
+export const CHILD_DELETE_BY_STAFF_KEY = "child_delete_by_staff";
+
+/**
+ * 이 사람이 아동을 지울 수 있는가.
+ *
+ * [왜 정책표가 아니라 여기인가]
+ * 정책표(api/policy.ts)는 DB 를 읽지 않는다 — 경로와 등급만 보는 표다.
+ * 이 판단은 센터가 설정에서 켜고 끄는 값에 달려 있어 표로는 못 가른다.
+ * 계정의 관리자 깃발을 요청 본문으로 가르는 api/accounts.ts 와 같은 모양이다.
+ *
+ * 기본은 센터장 이상이다. 아동 삭제는 딸린 관찰·평가가 한꺼번에 사라지는 일이라
+ * 돌이킬 수 없다. [설정 › 봉사자·권한 설정] 에서 켜면 종사자도 지울 수 있다
+ * (센터 전체에 하나다 — 사람별 허용은 아직 없다).
+ */
+export async function canDeleteChild(level: Level | null): Promise<boolean> {
+  if (!level) return false;
+  if (atLeast(level, "센터장")) return true;
+  if (!atLeast(level, "종사자")) return false;
+  return await getSetting<boolean>(CHILD_DELETE_BY_STAFF_KEY, false) === true;
+}
+
 /**
  * 아동과 딸린 기록을 지운다.
  *
  * 화면이 두 번 묻고(건수 안내 → 이름 입력) 온 요청이다. 서버는 다시 묻지 않는다.
  * 대신 무엇을 몇 건 지웠는지 돌려주어 화면이 그대로 알리게 한다.
+ *
+ * 등급은 여기서 한 번 더 본다 — 화면이 버튼을 감추는 것은 친절일 뿐이다.
  */
 export async function handleChildDelete(id: string): Promise<Response> {
   try {
+    const user = currentUser();
+    if (!await canDeleteChild((user?.level ?? null) as Level | null)) {
+      return Response.json(
+        { error: "아동 삭제는 센터장 이상만 할 수 있습니다. (설정에서 종사자에게 열 수 있습니다)" },
+        { status: 403, headers: JSON_HEADERS },
+      );
+    }
     const child = await getChild(id);
     if (!child) return notFound();
     const deleted = await deleteChild(id);

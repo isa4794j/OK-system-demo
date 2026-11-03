@@ -1667,6 +1667,21 @@ const CLOSE_EXPLAIN = "종결 처리하면: 아동은 명단의 '종결'로 이�
   "삭제되는 것은 없습니다.";
 const GENDERS = ["남", "여"];
 
+/**
+ * 아동 [삭제] 버튼을 보일 것인가. 서버가 설정(child_delete_by_staff)과 등급을 보고
+ * /api/auth/me 의 can.delete_child 로 알려 준다. 모르면 보이지 않는다 —
+ * 누르면 서버가 403 을 주므로, 안 보이는 쪽이 덜 혼란스럽다.
+ */
+let canDeleteChild = false;
+
+fetch("/api/auth/me")
+  .then((response) => (response.ok ? response.json() : null))
+  .then((payload) => {
+    canDeleteChild = payload?.can?.delete_child === true;
+    if (childDetail) renderChildInfo();
+  })
+  .catch(() => {});
+
 const elc = {
   addOpen: document.getElementById("child-add-open"),
 
@@ -1754,6 +1769,10 @@ function renderChildInfo() {
   elc.infoToggle.querySelector(".resgroup__mark").textContent = infoOpen ? "▾" : "▸";
   elc.infoFull.hidden = !infoOpen;
   elc.infoEdit.disabled = !d;
+  // 아동 삭제는 기본이 센터장 이상이다. 설정으로 종사자에게 열 수 있어 등급만으로는
+  // 알 수 없다 — 서버가 /api/auth/me 의 can.delete_child 로 알려 준다.
+  // 숨김은 친절일 뿐이고 막는 것은 서버다(api/children.ts canDeleteChild).
+  elc.infoDelete.hidden = !canDeleteChild;
   elc.infoDelete.disabled = !d;
 
   if (!d) {

@@ -1658,3 +1658,39 @@ textarea.mfield__input {
   text-decoration: underline;
   text-underline-offset: 3px;
 }
+
+/* ---------- 시트 안 안내 상자 (일지 작성 규칙) ---------- */
+
+/*
+   입력칸을 가리지 않게 접은 채로 열린다. 글자는 16px — 폰에서 지키는 선 안에서
+   가장 작은 값(그보다 작으면 iOS 가 탭할 때 화면을 확대한다).
+*/
+.msheet__notice {
+  margin: 0 0 var(--s1);
+  padding: var(--s1) var(--s2);
+  background: var(--warn-surface);
+  border: 1px solid var(--warn);
+  border-radius: var(--radius-sm);
+  color: var(--warn-text);
+  font-size: 16px;
+}
+
+.msheet__notice > summary {
+  /* 손끝으로 누르는 자리 — 44px */
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.msheet__notice-line {
+  margin: var(--s1) 0 0;
+  line-height: 1.6;
+}
+
+.msheet__notice-examples {
+  margin: var(--s1) 0 var(--s1);
+  padding-left: var(--s3);
+  line-height: 1.8;
+}

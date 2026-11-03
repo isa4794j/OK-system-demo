@@ -20,6 +20,38 @@ function node(tag, className, text) {
   return one;
 }
 
+/**
+ * 기관이 채워야 하는 자리(`[기관 입력: …]`)를 눈에 띄게 그린다.
+ * 모양은 서버 lib/documents.ts 의 blank()·BLANK_PATTERN 과 같은 것이다.
+ *
+ * 글은 여전히 textContent 로만 넣는다 — 사람이 적은 글에 innerHTML 을 쓰지 않는다.
+ * 사람이 그 자리를 자기 기관 값으로 바꿔 쓰면 패턴이 안 걸려 표시도 사라진다.
+ */
+const BLANK_RE = /\[기관 입력:[^\]]*\]/g;
+
+function blankParts(parent, text) {
+  const whole = String(text ?? "");
+  let last = 0;
+  for (const found of whole.matchAll(BLANK_RE)) {
+    if (found.index > last) {
+      parent.append(document.createTextNode(whole.slice(last, found.index)));
+    }
+    parent.append(node("span", "doc__blank", found[0]));
+    last = found.index + found[0].length;
+  }
+  if (last === 0) {
+    parent.textContent = whole;
+    return parent;
+  }
+  if (last < whole.length) parent.append(document.createTextNode(whole.slice(last)));
+  return parent;
+}
+
+/** node() 와 같지만 글 안의 자리표시를 표시해 넣는다 */
+function markedNode(tag, className, text) {
+  return blankParts(node(tag, className), text);
+}
+
 /** "초등학교 4학년" — 기준일(기간의 학년도)로 센다 */
 export function gradeFull(birthDate, when = new Date()) {
   const grade = gradeNumber(birthDate, when);
@@ -126,7 +158,10 @@ export function renderConsentDoc(form, center) {
     const table = node("table", "doc__rows");
     for (const row of section.rows ?? []) {
       const tr = node("tr");
-      tr.append(node("th", null, fill(row.label)), node("td", null, fill(row.text)));
+      tr.append(
+        node("th", null, fill(row.label)),
+        markedNode("td", null, fill(row.text)),
+      );
       table.append(tr);
     }
     box.append(table);
@@ -158,7 +193,7 @@ export function renderPolicyDoc(policy, { staffNotice = false } = {}) {
   for (const section of policy.sections ?? []) {
     const box = node("section", "doc__section doc__section--plain");
     box.append(node("h2", "doc__section-title", section.title));
-    box.append(node("p", "doc__para", section.body));
+    box.append(markedNode("p", "doc__para", section.body));
     doc.append(box);
   }
   if (staffNotice) {

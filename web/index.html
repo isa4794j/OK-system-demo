@@ -916,6 +916,7 @@
               <div class="chips" role="group" aria-label="봉사일지 공유 범위" id="vol-scope"></div>
             </div>
 
+
             <!-- 반기별 관찰 숨김(features.js) 동안 아래 두 카드는 안 보인다 -->
             <div class="card card--pad" id="vol-half-card" hidden>
               <h3 class="card__title">반기 관찰 열림·닫힘</h3>
@@ -962,6 +963,20 @@
               줄 수 없습니다 — 놓치면 재발급하시면 됩니다.
             </p>
 
+            <!--
+              아동 삭제 권한 — "누가 무엇을 할 수 있는가" 라서 계정 관리에 둔다.
+              기본은 센터장 이상이고, 켜면 종사자도 지울 수 있다.
+              막는 것은 서버(api/children.ts canDeleteChild)이고 이 칩은 그 값을 바꾼다.
+            -->
+            <div class="card card--pad acct__perm">
+              <h3 class="card__title">아동 삭제 권한</h3>
+              <p class="form__hint">
+                아동을 지우면 그 아동의 관찰·연간평가·일지에서 뽑은 관찰이 함께 사라집니다. 되돌릴 수 없습니다.
+                기본은 센터장 이상만 지울 수 있고, 여기서 종사자에게도 열 수 있습니다.
+              </p>
+              <div class="chips" role="group" aria-label="아동 삭제 권한" id="acct-childdel"></div>
+            </div>
+
             <ul class="acct__list" id="acct-list"></ul>
             <div class="state" id="acct-state" hidden></div>
           </section>
@@ -983,6 +998,7 @@
                 <button type="button" class="chip" data-aaction="delete">삭제</button>
                 <button type="button" class="chip" data-aaction="update">수정</button>
                 <button type="button" class="chip" data-aaction="create">등록</button>
+                <button type="button" class="chip" data-aaction="login">로그인</button>
               </div>
 
               <div class="toolbar__right audit__filters">

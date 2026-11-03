@@ -94,6 +94,12 @@ const state = {
    * 숨김은 친절이다 — 서버가 403 으로 다시 막는다.
    */
   viewerAdmin: false,
+  /**
+   * 종사자도 아동을 지울 수 있는가(settings.child_delete_by_staff).
+   * "누가 무엇을 할 수 있는가" 라서 이 화면에 둔다 — 설정을 찾는 사람이
+   * [봉사자 설정] 에서 아동 권한을 찾지는 않는다.
+   */
+  childDelete: false,
   loading: false,
   error: null,
   pending: false,
@@ -103,6 +109,7 @@ const el = {
   view: document.getElementById("view-accounts"),
   count: document.getElementById("acct-count"),
   list: document.getElementById("acct-list"),
+  childDelete: document.getElementById("acct-childdel"),
   state: document.getElementById("acct-state"),
 };
 
@@ -127,16 +134,83 @@ async function load() {
   render();
 
   try {
-    const [payload, admin] = await Promise.all([get("/api/accounts"), viewerIsAdmin()]);
+    const [payload, admin, childDelete] = await Promise.all([
+      get("/api/accounts"),
+      viewerIsAdmin(),
+      get("/api/settings/child_delete_by_staff"),
+    ]);
     state.viewerAdmin = admin;
     state.accounts = payload.accounts ?? [];
     state.usableAdmins = payload.usable_admins ?? 0;
+    state.childDelete = childDelete.value === true;
   } catch (error) {
     state.error = error.message;
     state.accounts = [];
   } finally {
     state.loading = false;
     render();
+  }
+}
+
+/* ---------- 아동 삭제 권한 ---------- */
+
+/**
+ * 칩 둘. 켜는 쪽을 누를 때만 한 번 더 묻는다 —
+ * 아동과 딸린 관찰·평가가 한꺼번에 사라지는 권한을 넓히는 일이다.
+ * 좁히는 쪽은 잃을 것이 없다.
+ *
+ * 막는 것은 서버다(api/children.ts canDeleteChild). 이 칩은 그 판단의 값을 바꾼다.
+ */
+function renderChildDelete() {
+  if (!el.childDelete) return;
+  el.childDelete.replaceChildren();
+
+  const options = [
+    { on: false, label: "센터장 이상만" },
+    { on: true, label: "종사자도 허용" },
+  ];
+  for (const one of options) {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = one.on === state.childDelete ? "chip is-selected" : "chip";
+    chip.textContent = one.label;
+    chip.disabled = state.loading || state.pending;
+    chip.addEventListener("click", () => setChildDelete(one.on));
+    el.childDelete.append(chip);
+  }
+
+  const why = document.createElement("span");
+  why.className = "warn__why";
+  why.textContent = state.childDelete
+    ? "종사자도 아동 [삭제] 버튼을 쓸 수 있습니다."
+    : "종사자에게는 아동 [삭제] 버튼이 보이지 않습니다. [종결로 변경] 은 그대로 쓸 수 있습니다.";
+  el.childDelete.append(why);
+}
+
+async function setChildDelete(next) {
+  if (next === state.childDelete) return;
+
+  if (next) {
+    const sure = await confirmDialog({
+      title: "종사자에게 아동 삭제를 열까요?",
+      message: "종사자도 아동과 딸린 관찰·연간평가를 지울 수 있게 됩니다. 되돌릴 수 없는 작업입니다.",
+      confirmText: "열기",
+    });
+    if (!sure) return;
+  }
+
+  const before = state.childDelete;
+  // 낙관적 갱신 — 누르는 즉시 바뀐 것으로 그리고, 실패하면 되돌린다.
+  state.childDelete = next;
+  render();
+
+  try {
+    await send("/api/settings/child_delete_by_staff", "PUT", { value: next });
+    toast(next ? "종사자도 지울 수 있게 했습니다" : "센터장 이상만 지울 수 있게 했습니다");
+  } catch (error) {
+    state.childDelete = before;
+    render();
+    toast(error.message, true);
   }
 }
 
@@ -147,6 +221,7 @@ function render() {
   closeMenu();
   el.list.replaceChildren();
   hideState(el.state);
+  renderChildDelete();
 
   if (state.loading) {
     el.count.textContent = "";

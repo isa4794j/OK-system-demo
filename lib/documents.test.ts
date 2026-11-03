@@ -1,8 +1,10 @@
-import { assertEquals, assertNotEquals } from "@std/assert";
+import { assert, assertEquals, assertNotEquals } from "@std/assert";
 import {
   addSensitive,
   addSensitiveToPolicy,
   applyReview,
+  blank,
+  BLANK_PATTERN,
   checkCenterName,
   checkConsentForm,
   checkPrivacyPolicy,
@@ -166,4 +168,39 @@ Deno.test("감수 반영 — Ⅰ 제목·거부 문구 '본 기관'(기본값에
   assertEquals(JSON.stringify(fixed).includes("지역아동센터"), false);
   assertEquals(fixed.sections[0].title, "Ⅰ. 개인정보 수집·이용 동의");
   assertEquals(applyReview(fixed), fixed);
+});
+
+/**
+ * 기관이 채울 자리는 `[기관 입력: 무엇]` 한 모양이다.
+ *
+ * 밑줄(____)만 두면 인쇄물에서 "원래 그런 양식" 처럼 보여 빈 채로 돌아다닌다.
+ * 무엇을 적어야 하는지 글자로 적고, 화면·인쇄물이 그 모양을 찾아 눈에 띄게 그린다
+ * (web/assets/doc_render.js 의 BLANK_RE — 여기 모양이 바뀌면 그쪽도 같이 바꾼다).
+ */
+Deno.test("처리방침 자리표시 — [기관 입력: …] 한 모양, 옛 밑줄은 남지 않는다", () => {
+  const all = DEFAULT_PRIVACY_POLICY.sections.map((one) => `${one.title}\n${one.body}`).join("\n");
+
+  assertEquals(blank("보호책임자 연락처"), "[기관 입력: 보호책임자 연락처]");
+  // 옛 밑줄 자리표시가 남아 있으면 화면이 표시하지 못한다
+  assertEquals(all.includes("____"), false);
+
+  const found = all.match(new RegExp(BLANK_PATTERN, "g")) ?? [];
+  // 적어도 보호책임자 성명·연락처, 파기 주기, 보유 연수, 자동 수집 장치, 동의 방법
+  assert(found.length >= 5, `자리표시가 너무 적다: ${found.length}`);
+  // 무엇을 적어야 하는지가 비어 있지 않다
+  for (const one of found) assert(one.length > "[기관 입력: ]".length, one);
+});
+
+/**
+ * 동의서 Ⅵ(AI 위탁) 의 거부 불이익 문구는 실제 운영 규칙과 같아야 한다.
+ *
+ * 아동별로 AI 분석에서 빼는 기능은 없다. "AI 분석 없이 수기로 관리" 라고 적으면
+ * 시스템에 등록해 두고 AI 만 빼 주는 것처럼 읽힌다 — 그 기능이 없으므로 거짓이 된다.
+ */
+Deno.test("동의서 Ⅵ — 미동의 아동은 '등록하지 않고' 수기 관리", () => {
+  const six = DEFAULT_CONSENT_FORM.sections.find((one) => one.title.startsWith("Ⅵ"));
+  assert(six, "Ⅵ 항목이 있어야 한다");
+  const refusal = six.rows.find((one) => one.label.includes("거부권"))?.text ?? "";
+  assertEquals(refusal.includes("이 시스템에 등록하지 않고"), true);
+  assertEquals(refusal.includes("AI 분석 없이"), false);
 });

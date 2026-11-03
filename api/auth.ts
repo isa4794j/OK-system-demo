@@ -43,6 +43,8 @@ import {
   markPrivacyAgreed,
   setPassword,
 } from "../db/accounts.ts";
+import { recordLogin } from "../db/audit.ts";
+import { canDeleteChild } from "./children.ts";
 import { needsConsent } from "./consent.ts";
 import { createSession, deleteSessionByToken } from "../db/sessions.ts";
 import { claimSetting, releaseSetting } from "../db/settings.ts";
@@ -62,7 +64,7 @@ import {
   needsRehash,
   verifySecret,
 } from "../lib/password.ts";
-import { loginBlockedReason } from "../lib/permission.ts";
+import { type Level, loginBlockedReason } from "../lib/permission.ts";
 import { clearCookie, sessionCookie } from "./cookie.ts";
 import { readSessionToken, resolveSession } from "./guard.ts";
 
@@ -144,7 +146,13 @@ export async function handleAuthState(): Promise<Response> {
 export async function handleAuthMe(req: Request): Promise<Response> {
   try {
     const found = await resolveSession(req);
-    return ok({ user: found?.account ?? null });
+    const account = found?.account ?? null;
+    // 화면이 버튼을 감출 때 쓰는 값. 막는 것은 어차피 서버다(api/children.ts).
+    // 설정에 달린 판단이라 등급만으로는 화면이 알 수 없어 함께 내려보낸다.
+    return ok({
+      user: account,
+      can: { delete_child: await canDeleteChild((account?.level ?? null) as Level | null) },
+    });
   } catch (error) {
     return serverError("GET /api/auth/me", error);
   }
@@ -166,21 +174,36 @@ export async function handleLogin(req: Request): Promise<Response> {
     // 동명이인. 비밀번호를 검사하지 않는다 — 한쪽이라도 맞춰 보면
     // "어느 쪽이 맞는지" 가 새어 나간다. 사람이 관리자에게 물어야 풀린다.
     if (found.length > 1) {
+      await recordLogin(name, "로그인 실패 — 같은 이름의 계정이 둘 이상");
       return denied("같은 이름의 계정이 둘 이상입니다. 관리자에게 문의해 주세요.");
     }
 
     const account = found[0];
-    if (!account) return denied();
+    if (!account) {
+      // 사람에게는 갈라서 알리지 않지만(아래 denied), 기록에는 적는다 —
+      // 없는 이름으로 두드리는 일이 로그에 보여야 한다. 비밀번호는 어디에도 적지 않는다.
+      await recordLogin(name, "로그인 실패 — 없는 로그인 이름");
+      return denied();
+    }
 
     const blocked = loginBlockedReason(account);
     if (blocked === "잠긴 계정") {
+      await recordLogin(account.login_name, "로그인 실패 — 잠긴 계정(여러 번 틀림)");
       return denied("여러 번 틀려 잠겼습니다. 15분 뒤에 다시 시도해 주세요.");
     }
     // 나머지 이유(없는 계정·정지·비번 미설정)는 갈라서 알리지 않는다.
-    if (blocked) return denied();
+    if (blocked) {
+      await recordLogin(account.login_name, `로그인 실패 — ${blocked}`);
+      return denied();
+    }
 
     if (!(await verifySecret(password, account.password_hash))) {
       await markLoginFailure(account);
+      // 몇 번째 실패인지 적는다 — 5번째면 잠긴다(db/accounts.ts MAX_FAILED)
+      await recordLogin(
+        account.login_name,
+        `로그인 실패 — 비밀번호 불일치(${account.failed_attempts + 1}회)`,
+      );
       return denied();
     }
 
@@ -192,6 +215,7 @@ export async function handleLogin(req: Request): Promise<Response> {
       account.id,
       req.headers.get("user-agent"),
     );
+    await recordLogin(account.login_name, "로그인 성공");
     // 034 뒤 아직 동의 전인 기존 계정 — 화면이 들어가기 전에 한 번 묻는다(api/consent.ts)
     return ok(
       {

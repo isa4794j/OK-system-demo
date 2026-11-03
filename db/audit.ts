@@ -30,7 +30,7 @@ import { getClient, RuleError } from "./client.ts";
 import { afterCursorFilter, cutPage, decodeCursor, PAGE_SIZE, type SortKey } from "./paging.ts";
 import { currentActor } from "../lib/request_context.ts";
 
-export type AuditAction = "create" | "update" | "delete";
+export type AuditAction = "create" | "update" | "delete" | "login";
 
 export type AuditEntry = {
   action: AuditAction;
@@ -124,6 +124,37 @@ export async function recordAudit(entry: AuditEntry): Promise<void> {
   if (error) {
     console.error("[audit] 기록 실패 — 남기려던 값:", JSON.stringify(entry));
     throw new Error(`감사 기록 실패: ${error.message}`);
+  }
+}
+
+/**
+ * 로그인 기록 한 줄 (035).
+ *
+ * [왜 따로 두나 — 실패를 삼킨다]
+ * 다른 기록은 실패하면 던진다. 사람이 "기록이 안 남았다" 를 알아야 하기 때문이다.
+ * 로그인은 다르다 — 035 를 안 돌린 DB 에서 던지면 **로그인 자체가 막힌다.**
+ * 기록을 남기려고 사람을 못 들어오게 하는 것은 거꾸로다. 서버 로그만 남기고 넘어간다.
+ *
+ * [적지 않는 것]
+ * 비밀번호·해시·초대코드는 어디에도 넣지 않는다(원칙 8). before/after 는 비운다 —
+ * 로그인에는 '전후 값' 이 없다. actor 는 로그인 이름(실패는 사람이 입력한 이름).
+ */
+export async function recordLogin(actor: string, summary: string): Promise<void> {
+  const { error } = await getClient()
+    .from("audit_logs")
+    .insert({
+      actor,
+      action: "login",
+      table_name: "staff",
+      record_id: null,
+      summary,
+      before: null,
+      after: null,
+    });
+
+  if (error) {
+    // 값은 찍지 않는다. 035 를 안 돌린 DB 면 여기로 온다 — 로그인은 그대로 된다.
+    console.error(`[audit] 로그인 기록 실패 — ${error.message}`);
   }
 }
 

@@ -3441,6 +3441,11 @@ textarea {
 
 /* ---------- 계정 관리 ---------- */
 
+/* 아동 삭제 권한 카드 — 계정 목록 위에 한 칸 띄우고 앉는다 */
+.acct__perm {
+  margin: var(--s2) 0 var(--s3);
+}
+
 .acct__list {
   display: flex;
   flex-direction: column;

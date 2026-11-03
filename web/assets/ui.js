@@ -4,6 +4,7 @@
  * 여러 화면이 같이 쓰는 것만 둔다. 화면별 로직은 각자 파일에.
  */
 import { DEMO_NOTICE } from "./demo_notice.js";
+import { PRIVACY_EXAMPLES, PRIVACY_FIRST, PRIVACY_RULES } from "./privacy_text.js";
 
 /* ---------- 서버 통신 ---------- */
 
@@ -217,25 +218,13 @@ export function personColor(item) {
 /* ---------- 개인정보 안내문 ---------- */
 
 /**
- * 일지 작성 화면마다 같은 안내가 붙는다. 글은 여기 한 번만 적고,
- * .notice--privacy 자리에 채워 넣는다 — 문구를 고칠 때 한 곳만 고치면 되게.
- *
- * 이름을 가려야 하는 이유: 일지는 AI 로 관찰을 뽑는다.
- * 등록된 아동·직원 이름은 코드로 바뀌어 나가지만, 등록되지 않은 이름은 바꿀 길이 없다.
+ * 일지 작성 화면마다 같은 안내가 붙는다. 글은 privacy_text.js 한 곳에만 적고
+ * (폰 화면도 같은 글을 쓴다 — 폰은 이 파일을 불러오지 않는다),
+ * 여기서는 .notice--privacy 자리에 모양만 채워 넣는다.
  */
-const PRIVACY_LEAD = [
-  "이름은 센터에 등록된 아동·선생님만 적어주세요. (AI 분석 때 등록된 이름만 가명으로 바뀌어 나갑니다)",
-  "그 밖의 사람·학교·기관은 일반 명칭으로:",
-];
-
-const PRIVACY_EXAMPLES = [
-  ['"○○초 김OO 선생님이"', '"학교 선생님이"'],
-  ['"OO이 사촌 형이"', '"친척이"'],
-  ['"△△병원"', '"병원"'],
-];
 
 /**
- * 첫 줄만 늘 보이고, 나머지(일반 명칭 안내·예시)는 [자세히 ▾] 안에 접는다.
+ * 첫 줄만 늘 보이고, 나머지(일반 명칭 안내·적지 않는 것·예시)는 [자세히 ▾] 안에 접는다.
  * 좁은 화면에서 안내 상자가 작성 화면의 절반을 차지하던 것을 줄인다.
  * 넓은 화면은 예전처럼 다 펼친 채로 둔다(접기 버튼도 안 보인다 — CSS).
  */
@@ -251,10 +240,9 @@ function fillPrivacyNotices() {
     demo.textContent = DEMO_NOTICE;
     box.append(demo);
 
-    const [first, ...rest] = PRIVACY_LEAD;
     const lead = document.createElement("p");
     lead.className = "notice__lead";
-    lead.textContent = first;
+    lead.textContent = PRIVACY_FIRST;
     box.append(lead);
 
     const more = document.createElement("details");
@@ -265,7 +253,7 @@ function fillPrivacyNotices() {
     summary.textContent = "자세히";
     more.append(summary);
 
-    for (const line of rest) {
+    for (const line of PRIVACY_RULES) {
       const p = document.createElement("p");
       p.className = "notice__lead";
       p.textContent = line;

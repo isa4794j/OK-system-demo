@@ -13,7 +13,7 @@
 import { type AuditAction, listAudit } from "../db/audit.ts";
 import { RuleError } from "../db/client.ts";
 
-const ACTIONS = ["create", "update", "delete"] as const;
+const ACTIONS = ["create", "update", "delete", "login"] as const;
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const LIMIT_DEFAULT = 15;
 const LIMIT_MAX = 100;
@@ -32,7 +32,7 @@ export async function handleAuditList(req: Request): Promise<Response> {
 
   const actionRaw = params.get("action")?.trim() || null;
   if (actionRaw && !(ACTIONS as readonly string[]).includes(actionRaw)) {
-    return badRequest("action 은 create, update, delete 중 하나여야 합니다.");
+    return badRequest("action 은 create, update, delete, login 중 하나여야 합니다.");
   }
 
   const from = params.get("from")?.trim() || null;

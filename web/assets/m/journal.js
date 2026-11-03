@@ -397,6 +397,7 @@ for (const node of el.segItems) {
 async function writeFor(date) {
   const value = await openForm({
     notice: DEMO_NOTICE,
+    privacy: true,
     title: `${dayLabel(date)} 일지`,
     submitText: "저장",
     fields: [
@@ -455,6 +456,7 @@ el.add.addEventListener("click", async () => {
 
   const value = await openForm({
     notice: DEMO_NOTICE,
+    privacy: true,
     title: "일지 쓰기",
     submitText: "저장",
     fields: [
@@ -497,6 +499,7 @@ el.add.addEventListener("click", async () => {
 async function editOne(one) {
   const value = await openForm({
     notice: DEMO_NOTICE,
+    privacy: true,
     title: `${dayLabel(one.journal_date)} 일지`,
     fields: [
       // 날짜는 보여만 준다. 바꾸는 것은 "다른 날 일지" 라는 뜻이라 새로 쓰는 것이 맞다.

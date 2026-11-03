@@ -15,7 +15,12 @@
  *   openForm  칸 목록을 주면 알아서 그린다. 대부분이 이쪽이다.
  *   openBody  안쪽을 직접 만들어 넣는다. 날짜 여러 줄처럼 모양이 있는 것.
  * 시트를 여닫는 일(겹침 방지·Esc·바깥 탭)은 아래 sheet() 한 곳에만 있다.
+ *
+ * [안내 상자]
+ * privacy: true 를 주면 제목 아래·칸들 위에 접힌 안내가 붙는다(일지 작성 규칙).
+ * 입력칸을 가리지 않게 접은 채로 열리고, 펼쳐도 아래로만 늘어난다.
  */
+import { PRIVACY_EXAMPLES, PRIVACY_FIRST, PRIVACY_RULES } from "../privacy_text.js";
 
 let openSheet = null;
 
@@ -41,7 +46,43 @@ export function closeSheet() {
  * 새 시트를 열기 전에 열려 있던 것을 닫는다 — 폰에서 시트 둘이 겹치면
  * 뒤엣것이 앞엣것을 가리고, 취소를 눌러도 아래에 하나가 더 남는다.
  */
-function sheet({ title, submitText, fill, read, validate, tall = false }) {
+/**
+ * 일지 작성 규칙 안내 — 접힌 상자 하나. 글은 privacy_text.js(PC 와 같은 한 벌).
+ * 글자는 전부 textContent 로 넣는다.
+ */
+function privacyBox() {
+  const box = document.createElement("details");
+  box.className = "msheet__notice";
+
+  const summary = document.createElement("summary");
+  summary.textContent = "일지 쓸 때 지켜 주세요";
+  box.append(summary);
+
+  const first = document.createElement("p");
+  first.className = "msheet__notice-line";
+  first.textContent = PRIVACY_FIRST;
+  box.append(first);
+
+  for (const line of PRIVACY_RULES) {
+    const p = document.createElement("p");
+    p.className = "msheet__notice-line";
+    p.textContent = line;
+    box.append(p);
+  }
+
+  const list = document.createElement("ul");
+  list.className = "msheet__notice-examples";
+  for (const [before, after] of PRIVACY_EXAMPLES) {
+    const item = document.createElement("li");
+    item.textContent = `${before} → ${after}`;
+    list.append(item);
+  }
+  box.append(list);
+
+  return box;
+}
+
+function sheet({ title, submitText, fill, read, validate, tall = false, privacy = false }) {
   closeSheet();
 
   const modal = document.createElement("div");
@@ -68,6 +109,8 @@ function sheet({ title, submitText, fill, read, validate, tall = false }) {
     tag.textContent = roleTag;
     panel.append(tag);
   }
+
+  if (privacy) panel.append(privacyBox());
 
   const error = document.createElement("p");
   error.className = "msheet__error";
@@ -135,12 +178,13 @@ function sheet({ title, submitText, fill, read, validate, tall = false }) {
  *   notice  칸들 위에 붙일 안내 한 줄(없으면 안 붙는다)
  *   돌려주는 값: { name: value } 또는 취소하면 null
  */
-export function openForm({ title, fields, submitText = "저장", onValidate, notice }) {
+export function openForm({ title, fields, submitText = "저장", onValidate, notice, privacy = false }) {
   const inputs = new Map();
 
   return sheet({
     title,
     submitText,
+    privacy,
     validate: onValidate,
     fill: (panel) => {
       if (notice) {

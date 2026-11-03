@@ -236,6 +236,23 @@
   margin-bottom: 20px;
 }
 
+/* ---------- 기관이 채워야 하는 자리 ---------- */
+
+/*
+ * `[기관 입력: …]` 자리. 화면에서는 노랑 배경+테두리로 눈에 띄게 하고,
+ * 인쇄는 흑백으로 나가는 일이 많아 색 대신 밑줄+굵게로 바꾼다(아래  print).
+ * 사람이 그 자리를 채우면 패턴이 안 걸려 이 표시도 사라진다.
+ */
+.doc__blank {
+  padding: 1px 4px;
+  background: var(--warn-surface);
+  border: 1px solid var(--warn);
+  border-radius: 4px;
+  color: var(--warn-text);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 /* ---------- 좁은 화면(보기 전용) ---------- */
 
 @media screen and (max-width: 720px) {
@@ -301,5 +318,18 @@
 
   .doc__foot {
     break-before: avoid;
+  }
+}
+
+/* 인쇄는 흑백도 있다 — 색 대신 밑줄+굵게 */
+@media print {
+  .doc__blank {
+    padding: 0;
+    background: none;
+    border: 0;
+    border-bottom: 1.5pt solid #000;
+    border-radius: 0;
+    color: inherit;
+    font-weight: 800;
   }
 }

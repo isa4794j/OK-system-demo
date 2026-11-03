@@ -54,6 +54,11 @@ type Rule = {
 /**
  * 화면에서 바꿀 수 있는 설정.
  *
+ * child_delete_by_staff — 종사자도 아동을 지울 수 있는가.
+ *   기본은 꺼짐(센터장 이상만). 아동 삭제는 딸린 관찰·평가가 한꺼번에 사라지는 일이다.
+ *   이 열쇠를 바꾸는 것도 센터장 이상(정책표), 바꾼 것은 감사 로그에 전후 값째 남는다.
+ *   사람별로 허용하는 것은 아직 없다 — 센터 전체에 하나다.
+ *
  * volunteer_journal_scope — 봉사자가 서로의 일지를 볼 수 있는가.
  *   기본은 '전체'. 격주로 오는 사람이 지난주에 무슨 일이 있었는지 알아야 한다.
  *
@@ -71,6 +76,13 @@ type Rule = {
  *   바꾸는 것은 센터장 이상(정책표 기본 규칙), 바꾼 것은 감사 로그에 전후 글째 남는다.
  */
 const ALLOWED: Record<string, Rule> = {
+  child_delete_by_staff: {
+    // 기본은 꺼짐 — 아동과 딸린 기록이 한꺼번에 사라지는 일은 센터장 이상이 한다.
+    // 켜면 종사자도 지울 수 있다. 판단은 서버가 한다(api/children.ts canDeleteChild).
+    fallback: false,
+    label: "종사자 아동 삭제 허용",
+    check: (value) => typeof value === "boolean" ? null : "켜기 또는 끄기여야 합니다.",
+  },
   volunteer_journal_scope: {
     fallback: "전체",
     choices: ["본인", "전체"],

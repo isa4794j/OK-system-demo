@@ -26,7 +26,7 @@ const TABLE_LABELS = {
   schedules: "일정",
 };
 
-const ACTION_LABELS = { create: "등록", update: "수정", delete: "삭제" };
+const ACTION_LABELS = { create: "등록", update: "수정", delete: "삭제", login: "로그인" };
 
 const state = {
   entries: [],
